@@ -86,7 +86,7 @@ export default function CommentsModal({ visible, onClose }: props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    backgroundColor: COLORS.modalOverlay,
   },
   container: {
     padding: 15,
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: "100%",
     height: "80%",
-
     backgroundColor: COLORS.commentsBackground,
   },
   center: {

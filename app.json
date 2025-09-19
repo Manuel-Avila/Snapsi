@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "GramTok",
-    "slug": "GramTok",
+    "name": "Snapsi",
+    "slug": "Snapsi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "gramtok",
+    "scheme": "snapsi",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -33,7 +33,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

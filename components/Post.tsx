@@ -9,18 +9,14 @@ import CommentsModal from "./Modals/CommentsModal";
 export default function Post() {
   const [showComments, setShowComments] = useState(false);
 
-  const handleOpenComments = () => {
-    setShowComments(true);
-  };
+  const handleOpenComments = () => setShowComments(true);
 
-  const handleCloseComments = () => {
-    setShowComments(false);
-  };
+  const handleCloseComments = () => setShowComments(false);
 
   return (
     <View style={styles.container}>
       <View style={styles.bar}>
-        <Link href="#">
+        <Link href="/user/3" asChild>
           <TouchableOpacity style={styles.flexRow}>
             <Image
               style={styles.profileImage}
