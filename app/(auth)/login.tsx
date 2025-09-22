@@ -1,29 +1,26 @@
+import CustomTextInput from "@/components/ui/CustomTextInput";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Log In</Text>
-      <TextInput
-        placeholder="Email"
-        style={styles.input}
-        placeholderTextColor={COLORS.gray}
-      />
-      <TextInput
-        placeholder="Password"
-        style={styles.input}
-        placeholderTextColor={COLORS.gray}
-        secureTextEntry
-      />
+      <View style={styles.inputContainer}>
+        <CustomTextInput label="Email" value={email} onChangeText={setEmail} />
+        <CustomTextInput
+          value={password}
+          onChangeText={setPassword}
+          label="Password"
+          secureTextEntry={true}
+        />
+      </View>
       <TouchableOpacity style={styles.button}>
         <Text style={styles.text}>Log In</Text>
       </TouchableOpacity>
@@ -60,19 +57,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: COLORS.text,
   },
-  input: {
-    borderBottomWidth: 1,
-    borderColor: COLORS.gray,
-    color: COLORS.text,
+  inputContainer: {
     width: "80%",
-    maxWidth: 500,
+    gap: 15,
   },
   button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 15,
+    marginTop: 10,
     padding: 12,
     width: "75%",
     maxWidth: 500,
+    borderRadius: 15,
+    backgroundColor: COLORS.primary,
   },
   text: {
     color: COLORS.text,

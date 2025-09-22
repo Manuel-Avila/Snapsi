@@ -6,13 +6,13 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import CustomTextInput from "../ui/CustomTextInput";
 
 export default function EditProfileModal({ visible, onClose }) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState("Cirilais");
   const [description, setDescription] = useState("");
 
   const handleSaveChanges = () => {
@@ -35,22 +35,19 @@ export default function EditProfileModal({ visible, onClose }) {
             <View style={styles.topBar} />
             <Text style={styles.modalTitle}>Edit Profile</Text>
           </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Name</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-            ></TextInput>
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Description</Text>
-            <TextInput
-              style={styles.input}
-              value={description}
-              onChangeText={setDescription}
-            ></TextInput>
-          </View>
+
+          <CustomTextInput
+            value={name}
+            onChangeText={setName}
+            label="Username"
+          />
+
+          <CustomTextInput
+            value={description}
+            onChangeText={setDescription}
+            label="Description"
+          />
+
           <TouchableOpacity style={styles.saveButton}>
             <Text style={styles.text} onPress={handleSaveChanges}>
               Save Changes
@@ -87,20 +84,6 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: COLORS.gray,
     width: 40,
-  },
-  inputGroup: {
-    borderWidth: 0.2,
-    borderColor: COLORS.gray,
-    borderRadius: 15,
-    padding: 12,
-  },
-  inputLabel: {
-    color: COLORS.gray,
-  },
-  input: {
-    color: COLORS.text,
-    paddingVertical: 3,
-    paddingHorizontal: 0,
   },
   saveButton: {
     backgroundColor: COLORS.primary,
