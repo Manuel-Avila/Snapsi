@@ -7,4 +7,5 @@ export const COLORS = {
   primary: "#FF6B6B",
   gray: "#9CA3AF",
   text: "#FFFFFF",
+  ripple: "rgba(255, 255, 255, 0.1)",
 };

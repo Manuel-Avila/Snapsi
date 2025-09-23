@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -16,6 +17,7 @@ type Props = {
   options: string[];
 };
 
+const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
@@ -33,10 +35,25 @@ export default function DropdownInput({
     setIsDropdownOpen(false);
   };
 
+  const dropdownHeight = useSharedValue(0);
+  const dropdownOpacity = useSharedValue(0);
   const labelY = useSharedValue(27);
   const inputColor = useSharedValue(COLORS.gray);
   const labelFontSize = useSharedValue(16);
   const iconRotation = useSharedValue("0deg");
+
+  const dropdownStyle = useAnimatedStyle(() => {
+    return {
+      maxHeight: withTiming(dropdownHeight.value, {
+        duration: 100,
+        easing: Easing.out(Easing.ease),
+      }),
+      opacity: withTiming(dropdownOpacity.value, {
+        duration: 100,
+        easing: Easing.out(Easing.ease),
+      }),
+    };
+  });
 
   const borderStyle = useAnimatedStyle(() => {
     return {
@@ -75,9 +92,13 @@ export default function DropdownInput({
 
   useEffect(() => {
     if (isDropdownOpen) {
+      dropdownHeight.value = 200;
+      dropdownOpacity.value = 1;
       inputColor.value = COLORS.primary;
       iconRotation.value = "180deg";
     } else {
+      dropdownHeight.value = 0;
+      dropdownOpacity.value = 0;
       inputColor.value = COLORS.gray;
       iconRotation.value = "0deg";
     }
@@ -98,23 +119,27 @@ export default function DropdownInput({
         <AnimatedIcon name="chevron-down" style={[styles.icon, iconStyle]} />
       </AnimatedPressable>
 
-      {isDropdownOpen && (
-        <View style={styles.optionsContainer}>
-          <FlatList
-            data={options}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => handleOnSelectOption(item)}
-                style={styles.optionItem}
-              >
-                <Text style={styles.optionText}>{item}</Text>
-              </Pressable>
-            )}
-            keyExtractor={(item, index) => index.toString()}
-            indicatorStyle="white"
-          />
-        </View>
-      )}
+      <AnimatedView
+        style={[styles.optionsContainer, dropdownStyle]}
+        pointerEvents={isDropdownOpen ? "auto" : "none"}
+      >
+        <FlatList
+          data={options}
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => handleOnSelectOption(item)}
+              style={({ pressed }) => [
+                styles.optionItem,
+                pressed && styles.optionPressed,
+              ]}
+            >
+              <Text style={styles.optionText}>{item}</Text>
+            </Pressable>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+          indicatorStyle="white"
+        />
+      </AnimatedView>
     </View>
   );
 }
@@ -145,7 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   optionsContainer: {
-    maxHeight: 200,
     width: "100%",
     position: "absolute",
     top: 70,
@@ -158,5 +182,8 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: COLORS.gray,
+  },
+  optionPressed: {
+    backgroundColor: COLORS.ripple,
   },
 });
