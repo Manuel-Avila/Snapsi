@@ -1,6 +1,12 @@
 import { COLORS } from "@/constants/theme";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,10 +15,13 @@ import Animated, {
 } from "react-native-reanimated";
 
 type Props = {
-  value?: string;
+  value: string;
   onChangeText: (text: string) => void;
   label: string;
   secureTextEntry?: boolean;
+  style?: object;
+  keyboardType?: TextInputProps["keyboardType"];
+  maxLength?: number;
 };
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
@@ -23,6 +32,9 @@ export default function CustomTextInput({
   onChangeText,
   label,
   secureTextEntry,
+  style,
+  keyboardType,
+  maxLength,
 }: Props) {
   const [isFocused, setIsFocused] = useState(false);
   const isActive = isFocused || (value && value.length > 0);
@@ -68,7 +80,7 @@ export default function CustomTextInput({
   }, [isFocused]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <AnimatedText style={[styles.label, labelStyle]}>{label}</AnimatedText>
       <AnimatedTextInput
         value={value}
@@ -78,6 +90,8 @@ export default function CustomTextInput({
         secureTextEntry={secureTextEntry}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        keyboardType={keyboardType}
+        maxLength={maxLength}
       />
     </View>
   );

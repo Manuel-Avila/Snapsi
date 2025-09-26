@@ -1,10 +1,11 @@
 import EditProfileModal from "@/components/Modals/EditProfileModal";
 import PostsContainer from "@/components/PostsContainer";
 import ProfileInformation from "@/components/ProfileInformation";
+import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Profile() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -25,14 +26,14 @@ export default function Profile() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Username</Text>
-        <TouchableOpacity>
+        <PulsateButton>
           <Ionicons name="log-out-outline" style={styles.logoutIcon} />
-        </TouchableOpacity>
+        </PulsateButton>
       </View>
       <ProfileInformation />
-      <TouchableOpacity style={styles.editButton} onPress={handleOpenEditModal}>
+      <PulsateButton style={styles.editButton} onPress={handleOpenEditModal}>
         <Text style={styles.editButtonText}>Edit Profile</Text>
-      </TouchableOpacity>
+      </PulsateButton>
 
       <PostsContainer
         data={posts}

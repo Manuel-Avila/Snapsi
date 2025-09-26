@@ -1,7 +1,8 @@
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
+import PulsateButton from "../ui/PulsateButton";
 
 export default function SelectedImageModal({ visible, onClose, imageUrl }) {
   return (
@@ -13,9 +14,9 @@ export default function SelectedImageModal({ visible, onClose, imageUrl }) {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <TouchableOpacity onPress={onClose}>
+          <PulsateButton onPress={onClose}>
             <Ionicons name="close" style={styles.closeIcon} />
-          </TouchableOpacity>
+          </PulsateButton>
           <Image
             source={{ uri: imageUrl }}
             style={styles.image}

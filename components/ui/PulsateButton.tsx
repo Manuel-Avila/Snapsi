@@ -6,20 +6,22 @@ import Animated, {
 } from "react-native-reanimated";
 
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onPress?: () => void;
-  styles?: object;
+  style?: object;
 };
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function PulsateButton({
   children,
   onPress,
-  styles = {},
+  style = {},
 }: Props) {
   const scale = useSharedValue(1);
 
   const onPressIn = () => {
-    scale.value = 0.9;
+    scale.value = 0.95;
   };
 
   const onPressOut = () => {
@@ -33,8 +35,13 @@ export default function PulsateButton({
   });
 
   return (
-    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
-      <Animated.View style={[styles, animatedStyle]}>{children}</Animated.View>
-    </Pressable>
+    <AnimatedPressable
+      style={[style, animatedStyle]}
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+    >
+      {children}
+    </AnimatedPressable>
   );
 }

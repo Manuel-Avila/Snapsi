@@ -1,46 +1,63 @@
 import CustomTextInput from "@/components/ui/CustomTextInput";
+import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Log In</Text>
-      <View style={styles.inputContainer}>
-        <CustomTextInput label="Email" value={email} onChangeText={setEmail} />
-        <CustomTextInput
-          value={password}
-          onChangeText={setPassword}
-          label="Password"
-          secureTextEntry={true}
-        />
-      </View>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.text}>Log In</Text>
-      </TouchableOpacity>
-      <View style={styles.separatorContainer}>
-        <View style={styles.separator} />
-        <Text style={styles.text}>Or</Text>
-        <View style={styles.separator} />
-      </View>
-      <TouchableOpacity style={styles.googleButton}>
-        <Ionicons name="logo-google" style={styles.googleIcon} />
-        <Text style={styles.text}>Google</Text>
-      </TouchableOpacity>
-      <Text style={styles.text}>
-        Don&apos;t have an account?
-        <Link href="/(auth)/signUp" style={styles.link}>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Log In</Text>
+        <View style={styles.inputContainer}>
+          <CustomTextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <CustomTextInput
+            value={password}
+            onChangeText={setPassword}
+            label="Password"
+            secureTextEntry={true}
+          />
+        </View>
+        <PulsateButton style={styles.button}>
+          <Text style={styles.text}>Log In</Text>
+        </PulsateButton>
+        <View style={styles.separatorContainer}>
+          <View style={styles.separator} />
+          <Text style={styles.text}>Or</Text>
+          <View style={styles.separator} />
+        </View>
+        <PulsateButton style={styles.googleButton}>
+          <Ionicons name="logo-google" style={styles.googleIcon} />
+          <Text style={styles.text}>Google</Text>
+        </PulsateButton>
+        <Text style={styles.text}>
+          Don&apos;t have an account?
+          <Link href="/(auth)/signUp" style={styles.link}>
+            {" "}
+            Sign Up
+          </Link>
+        </Text>
+        <Link href="/(tabs)/home" style={styles.link}>
           {" "}
-          Sign Up
+          home
         </Link>
-      </Text>
-    </View>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 

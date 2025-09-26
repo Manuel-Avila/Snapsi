@@ -1,6 +1,10 @@
 import { Redirect } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function Index() {
-  return <Redirect href="/(auth)/login" />;
-  // return <Redirect href="/home" />;
+  return (
+    <GestureHandlerRootView>
+      <Redirect href="/(auth)/login" />
+    </GestureHandlerRootView>
+  );
 }

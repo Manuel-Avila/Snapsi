@@ -1,15 +1,17 @@
 import { COLORS } from "@/constants/theme";
 import { useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import CustomTextInput from "../ui/CustomTextInput";
+import PulsateButton from "../ui/PulsateButton";
 
 export default function EditProfileModal({ visible, onClose }) {
   const [name, setName] = useState("Cirilais");
@@ -30,30 +32,32 @@ export default function EditProfileModal({ visible, onClose }) {
         style={styles.overlay}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.center}>
-            <View style={styles.topBar} />
-            <Text style={styles.modalTitle}>Edit Profile</Text>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+          <View style={styles.modalContainer}>
+            <View style={styles.center}>
+              <View style={styles.topBar} />
+              <Text style={styles.modalTitle}>Edit Profile</Text>
+            </View>
+
+            <CustomTextInput
+              value={name}
+              onChangeText={setName}
+              label="Username"
+            />
+
+            <CustomTextInput
+              value={description}
+              onChangeText={setDescription}
+              label="Description"
+            />
+
+            <PulsateButton style={styles.saveButton}>
+              <Text style={styles.text} onPress={handleSaveChanges}>
+                Save Changes
+              </Text>
+            </PulsateButton>
           </View>
-
-          <CustomTextInput
-            value={name}
-            onChangeText={setName}
-            label="Username"
-          />
-
-          <CustomTextInput
-            value={description}
-            onChangeText={setDescription}
-            label="Description"
-          />
-
-          <TouchableOpacity style={styles.saveButton}>
-            <Text style={styles.text} onPress={handleSaveChanges}>
-              Save Changes
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>
   );

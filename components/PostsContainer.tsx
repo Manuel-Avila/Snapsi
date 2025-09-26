@@ -1,8 +1,10 @@
+import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
 import { useState } from "react";
 import {
   Dimensions,
   FlatList,
+  RefreshControl,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -18,7 +20,16 @@ const imageWidth =
 
 export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const handleCloseSelectedImageModal = () => setSelectedImage(null);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 2000);
+  };
 
   return (
     <View style={styles.container}>
@@ -46,6 +57,15 @@ export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
           )}
           keyExtractor={(_, i) => i.toString()}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={[COLORS.primary]}
+              progressBackgroundColor={COLORS.background}
+              tintColor={COLORS.primary}
+            />
+          }
         />
       )}
 

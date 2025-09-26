@@ -10,10 +10,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import Comment from "../Comment";
+import PulsateButton from "../ui/PulsateButton";
 
 type props = {
   visible: boolean;
@@ -67,7 +67,7 @@ export default function CommentsModal({ visible, onClose }: props) {
               onChangeText={setNewComment}
               placeholderTextColor={COLORS.gray}
             />
-            <TouchableOpacity
+            <PulsateButton
               style={[styles.sendButton, !newComment.trim() && styles.hide]}
             >
               <Ionicons
@@ -75,7 +75,7 @@ export default function CommentsModal({ visible, onClose }: props) {
                 name="arrow-up-outline"
                 size={20}
               />
-            </TouchableOpacity>
+            </PulsateButton>
           </View>
         </View>
       </KeyboardAvoidingView>

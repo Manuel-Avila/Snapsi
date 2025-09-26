@@ -1,10 +1,17 @@
 import CustomTextInput from "@/components/ui/CustomTextInput";
 import DropdownInput from "@/components/ui/DropdownInput";
+import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
@@ -14,55 +21,74 @@ export default function SignUp() {
   const [gender, setGender] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const genderOptions = ["Male", "Female", "Other"];
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
-      <View style={styles.inputContainer}>
-        <CustomTextInput
-          label="Username"
-          value={username}
-          onChangeText={setUsername}
-        />
-        <CustomTextInput label="Email" value={email} onChangeText={setEmail} />
-        <DropdownInput
-          label="Gender"
-          value={gender}
-          onSelect={setGender}
-          options={["Male", "Female", "Other"]}
-        />
-        <CustomTextInput
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-        />
-        <CustomTextInput
-          label="Confirm Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry={true}
-        />
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Sign Up</Text>
+        <View style={styles.inputContainer}>
+          <CustomTextInput
+            label="Username"
+            value={username}
+            onChangeText={setUsername}
+          />
+          <CustomTextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <View style={styles.ageAndGenderContainer}>
+            <DropdownInput
+              label="Gender"
+              value={gender}
+              onSelect={setGender}
+              options={genderOptions}
+              style={styles.flex}
+            />
+            <CustomTextInput
+              label="Age"
+              value={age}
+              onChangeText={setAge}
+              style={styles.flex}
+              keyboardType="number-pad"
+              maxLength={3}
+            />
+          </View>
+          <CustomTextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+          />
+          <CustomTextInput
+            label="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={true}
+          />
+        </View>
+        <PulsateButton style={styles.button}>
+          <Text style={styles.text}>Sign Up</Text>
+        </PulsateButton>
+        <View style={styles.separatorContainer}>
+          <View style={styles.separator} />
+          <Text style={styles.text}>Or</Text>
+          <View style={styles.separator} />
+        </View>
+        <PulsateButton style={styles.googleButton}>
+          <Ionicons name="logo-google" style={styles.googleIcon} />
+          <Text style={styles.text}>Google</Text>
+        </PulsateButton>
+        <Text style={styles.text}>
+          Already have an account?
+          <Link href="/(auth)/login" style={styles.link}>
+            {" "}
+            Log In
+          </Link>
+        </Text>
       </View>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.text}>Sign Up</Text>
-      </TouchableOpacity>
-      <View style={styles.separatorContainer}>
-        <View style={styles.separator} />
-        <Text style={styles.text}>Or</Text>
-        <View style={styles.separator} />
-      </View>
-      <TouchableOpacity style={styles.googleButton}>
-        <Ionicons name="logo-google" style={styles.googleIcon} />
-        <Text style={styles.text}>Google</Text>
-      </TouchableOpacity>
-      <Text style={styles.text}>
-        Already have an account?
-        <Link href="/(auth)/login" style={styles.link}>
-          {" "}
-          Log In
-        </Link>
-      </Text>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -94,6 +120,14 @@ const styles = StyleSheet.create({
   text: {
     color: COLORS.text,
     textAlign: "center",
+  },
+  ageAndGenderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 20,
+  },
+  flex: {
+    flex: 1,
   },
   separatorContainer: {
     flexDirection: "row",

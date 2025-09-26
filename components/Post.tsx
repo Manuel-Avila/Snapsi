@@ -3,8 +3,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import CommentsModal from "./Modals/CommentsModal";
+import PulsateButton from "./ui/PulsateButton";
 
 export default function Post() {
   const [showComments, setShowComments] = useState(false);
@@ -17,7 +18,7 @@ export default function Post() {
     <View style={styles.container}>
       <View style={styles.bar}>
         <Link href="/user/3" asChild>
-          <TouchableOpacity style={styles.flexRow}>
+          <PulsateButton style={styles.flexRow}>
             <Image
               style={styles.profileImage}
               source={{
@@ -28,11 +29,11 @@ export default function Post() {
               cachePolicy="memory-disk"
             />
             <Text style={styles.username}>Usersname</Text>
-          </TouchableOpacity>
+          </PulsateButton>
         </Link>
-        <TouchableOpacity>
+        <PulsateButton>
           <Ionicons name="ellipsis-vertical" size={20} style={styles.white} />
-        </TouchableOpacity>
+        </PulsateButton>
       </View>
 
       <Image
@@ -47,20 +48,20 @@ export default function Post() {
 
       <View style={styles.bar}>
         <View style={styles.flexRow}>
-          <TouchableOpacity>
+          <PulsateButton>
             <Ionicons name="heart-outline" size={25} style={styles.white} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleOpenComments}>
+          </PulsateButton>
+          <PulsateButton onPress={handleOpenComments}>
             <Ionicons
               name="chatbubble-outline"
               size={25}
               style={styles.white}
             />
-          </TouchableOpacity>
+          </PulsateButton>
         </View>
-        <TouchableOpacity>
+        <PulsateButton>
           <Ionicons name="bookmark-outline" size={25} style={styles.white} />
-        </TouchableOpacity>
+        </PulsateButton>
       </View>
       <View style={styles.postMetrics}>
         <Text style={styles.white}>15 likes</Text>

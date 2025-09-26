@@ -1,7 +1,14 @@
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -12,9 +19,10 @@ import Animated, {
 
 type Props = {
   label: string;
-  value?: string;
+  value: string;
   onSelect: (value: string) => void;
   options: string[];
+  style?: object;
 };
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -27,13 +35,11 @@ export default function DropdownInput({
   value,
   onSelect,
   options,
+  style,
 }: Props) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const handleOnSelectOption = (selectedValue: string) => {
-    onSelect(selectedValue);
-    setIsDropdownOpen(false);
-  };
+  const [layout, setLayout] = useState(null);
+  const DropdownButton = useRef(null);
 
   const dropdownHeight = useSharedValue(0);
   const dropdownOpacity = useSharedValue(0);
@@ -45,11 +51,11 @@ export default function DropdownInput({
   const dropdownStyle = useAnimatedStyle(() => {
     return {
       maxHeight: withTiming(dropdownHeight.value, {
-        duration: 100,
+        duration: 200,
         easing: Easing.out(Easing.ease),
       }),
       opacity: withTiming(dropdownOpacity.value, {
-        duration: 100,
+        duration: 200,
         easing: Easing.out(Easing.ease),
       }),
     };
@@ -104,10 +110,26 @@ export default function DropdownInput({
     }
   }, [isDropdownOpen]);
 
+  const handleOnSelectOption = (selectedValue: string) => {
+    onSelect(selectedValue);
+    setIsDropdownOpen(false);
+  };
+
+  const openDropdown = () => {
+    DropdownButton.current.measureInWindow((px, py, width, height) => {
+      setLayout({
+        top: py + height,
+        left: px,
+        width: width,
+      });
+      setIsDropdownOpen(true);
+    });
+  };
+
   return (
-    <View style={styles.container}>
+    <View ref={DropdownButton} style={[styles.container, style]}>
       <AnimatedPressable
-        onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+        onPress={openDropdown}
         style={[styles.inputContainer, borderStyle]}
       >
         <View>
@@ -119,34 +141,66 @@ export default function DropdownInput({
         <AnimatedIcon name="chevron-down" style={[styles.icon, iconStyle]} />
       </AnimatedPressable>
 
-      <AnimatedView
-        style={[styles.optionsContainer, dropdownStyle]}
-        pointerEvents={isDropdownOpen ? "auto" : "none"}
-      >
-        <FlatList
-          data={options}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => handleOnSelectOption(item)}
-              style={({ pressed }) => [
-                styles.optionItem,
-                pressed && styles.optionPressed,
-              ]}
-            >
-              <Text style={styles.optionText}>{item}</Text>
-            </Pressable>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-          indicatorStyle="white"
+      <Modal visible={isDropdownOpen} transparent animationType="none">
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setIsDropdownOpen(false)}
         />
-      </AnimatedView>
+        {layout && (
+          <AnimatedView
+            style={[
+              styles.optionsContainer,
+              { top: layout.top, left: layout.left, width: layout.width },
+              dropdownStyle,
+            ]}
+          >
+            <FlatList
+              data={options}
+              persistentScrollbar={true}
+              renderItem={({ item }) => (
+                <Item
+                  item={item}
+                  handleOnSelectOption={handleOnSelectOption}
+                  selectedItem={value}
+                />
+              )}
+              keyExtractor={(item, index) => index.toString()}
+              indicatorStyle="white"
+            />
+          </AnimatedView>
+        )}
+      </Modal>
     </View>
+  );
+}
+
+type ItemProps = {
+  item: string;
+  handleOnSelectOption: (value: string) => void;
+  selectedItem: string;
+};
+
+function Item({ item, handleOnSelectOption, selectedItem }: ItemProps) {
+  const isSelected = item === selectedItem;
+
+  return (
+    <Pressable
+      onPress={() => handleOnSelectOption(item)}
+      style={({ pressed }) => [
+        styles.optionItem,
+        pressed && styles.optionPressed,
+        isSelected && styles.optionSelected,
+      ]}
+    >
+      <Text style={styles.optionText}>{item}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     position: "relative",
+    zIndex: 10,
   },
   inputContainer: {
     paddingBottom: 10,
@@ -169,11 +223,12 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
     fontSize: 20,
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+  },
   optionsContainer: {
-    width: "100%",
     position: "absolute",
-    top: 70,
-    zIndex: 900,
     borderRadius: 8,
     backgroundColor: COLORS.dropdownInput,
   },
@@ -184,6 +239,9 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
   },
   optionPressed: {
+    backgroundColor: COLORS.ripple,
+  },
+  optionSelected: {
     backgroundColor: COLORS.ripple,
   },
 });

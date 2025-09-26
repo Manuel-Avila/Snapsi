@@ -2,14 +2,15 @@ import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import PulsateButton from "./ui/PulsateButton";
 
 export default function Notification({ notification }) {
   return (
     <Link href="#" asChild>
-      <TouchableOpacity style={styles.container} activeOpacity={1}>
+      <PulsateButton style={styles.container}>
         <Link href="/(tabs)/profile" asChild>
-          <TouchableOpacity style={styles.profileImageContainer}>
+          <PulsateButton style={styles.profileImageContainer}>
             <Image
               style={styles.profileImage}
               source={{
@@ -20,13 +21,13 @@ export default function Notification({ notification }) {
               contentFit="cover"
             />
             <Ionicons name="heart" style={styles.icon} />
-          </TouchableOpacity>
+          </PulsateButton>
         </Link>
         <View style={styles.notificationDetails}>
           <Link href="/(tabs)/create" asChild>
-            <TouchableOpacity>
+            <PulsateButton>
               <Text style={styles.username}>manuel_avilam</Text>
-            </TouchableOpacity>
+            </PulsateButton>
           </Link>
           <Text style={styles.notificationInfo}>
             commented: &quot;How Big&quot;
@@ -42,7 +43,7 @@ export default function Notification({ notification }) {
           transition={500}
           contentFit="cover"
         />
-      </TouchableOpacity>
+      </PulsateButton>
     </Link>
   );
 }

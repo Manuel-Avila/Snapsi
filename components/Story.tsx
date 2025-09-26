@@ -1,6 +1,7 @@
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import PulsateButton from "./ui/PulsateButton";
 
 export default function Story() {
   const story = {
@@ -8,7 +9,7 @@ export default function Story() {
   };
 
   return (
-    <TouchableOpacity style={styles.container}>
+    <PulsateButton style={styles.container}>
       <View style={[styles.storyRing, !story.hasStory && styles.noStory]}>
         <Image
           style={styles.image}
@@ -21,7 +22,7 @@ export default function Story() {
         />
       </View>
       <Text style={styles.username}>You</Text>
-    </TouchableOpacity>
+    </PulsateButton>
   );
 }
 

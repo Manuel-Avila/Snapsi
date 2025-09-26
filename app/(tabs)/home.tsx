@@ -1,18 +1,19 @@
 import Post from "@/components/Post";
 import StoriesContainer from "@/components/StoriesContainer";
+import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>App Name</Text>
-        <TouchableOpacity>
+        <PulsateButton>
           <Ionicons name="log-out-outline" style={styles.logoutIcon} />
-        </TouchableOpacity>
+        </PulsateButton>
       </View>
       <StoriesContainer />
       <Post />

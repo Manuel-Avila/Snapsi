@@ -1,9 +1,10 @@
 import PostsContainer from "@/components/PostsContainer";
 import ProfileInformation from "@/components/ProfileInformation";
+import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function UserProfile() {
   const { id } = useLocalSearchParams();
@@ -21,20 +22,20 @@ export default function UserProfile() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <PulsateButton onPress={() => router.back()}>
           <Ionicons name="arrow-back" style={styles.arrowBackIcon} />
-        </TouchableOpacity>
+        </PulsateButton>
         <Text style={styles.title}>Username {id}</Text>
       </View>
       <ProfileInformation />
       {followed ? (
-        <TouchableOpacity style={[styles.button, styles.followingButtonColor]}>
+        <PulsateButton style={[styles.button, styles.followingButtonColor]}>
           <Text style={styles.buttonText}>Following</Text>
-        </TouchableOpacity>
+        </PulsateButton>
       ) : (
-        <TouchableOpacity style={[styles.button, styles.followButtonColor]}>
+        <PulsateButton style={[styles.button, styles.followButtonColor]}>
           <Text style={styles.buttonText}>Follow</Text>
-        </TouchableOpacity>
+        </PulsateButton>
       )}
 
       <PostsContainer
