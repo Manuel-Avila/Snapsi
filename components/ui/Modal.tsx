@@ -8,7 +8,13 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Animated, {
+  Easing,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -21,6 +27,7 @@ type Props = {
   onClose: () => void;
   backdropOpacity?: number;
   animationDuration?: number;
+  tresholdY?: number;
   style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -35,6 +42,7 @@ export function Modal({
   onClose,
   backdropOpacity = 0.5,
   animationDuration = 200,
+  tresholdY = 150,
   style,
   contentContainerStyle,
 }: Props) {
@@ -66,9 +74,11 @@ export function Modal({
     if (isVisible) {
       setIsRendered(true);
       backdropValue.value = withTiming(opacity, {
+        easing: Easing.ease,
         duration: ANIMATION_DURATION,
       });
       translateY.value = withTiming(0, {
+        easing: Easing.ease,
         duration: ANIMATION_DURATION,
       });
     } else {
@@ -76,12 +86,14 @@ export function Modal({
         0,
         {
           duration: ANIMATION_DURATION,
+          easing: Easing.ease,
         },
         () => {
           runOnJS(handleClose)();
         }
       );
       translateY.value = withTiming(screenHeight, {
+        easing: Easing.ease,
         duration: ANIMATION_DURATION,
       });
     }
@@ -91,6 +103,25 @@ export function Modal({
     setIsRendered(false);
   };
 
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      const newTranslateY = event.translationY;
+      if (newTranslateY > 0) {
+        translateY.value = newTranslateY;
+      }
+    })
+    .onEnd((event) => {
+      if (translateY.value > tresholdY || event.velocityY > 800) {
+        onClose();
+      } else {
+        translateY.value = withTiming(0, {
+          easing: Easing.ease,
+          duration: ANIMATION_DURATION,
+        });
+      }
+    })
+    .runOnJS(true);
+
   return (
     <RNModal
       animationType="none"
@@ -98,21 +129,25 @@ export function Modal({
       visible={isRendered}
       onRequestClose={onClose}
     >
-      <View style={[{ flex: 1 }, style]}>
-        <AnimatedPressable
-          style={[
-            {
-              ...StyleSheet.absoluteFillObject,
-              backgroundColor: "black",
-            },
-            backdropStyle,
-          ]}
-          onPress={onClose}
-        />
-        <AnimatedView style={[contentContainerStyle, contentStyle]}>
-          {children}
-        </AnimatedView>
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={[{ flex: 1 }, style]}>
+          <AnimatedPressable
+            style={[
+              {
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: "black",
+              },
+              backdropStyle,
+            ]}
+            onPress={onClose}
+          />
+          <GestureDetector gesture={panGesture}>
+            <AnimatedView style={[contentContainerStyle, contentStyle]}>
+              {children}
+            </AnimatedView>
+          </GestureDetector>
+        </View>
+      </GestureHandlerRootView>
     </RNModal>
   );
 }
