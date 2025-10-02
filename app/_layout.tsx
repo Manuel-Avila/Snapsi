@@ -1,8 +1,9 @@
 import { COLORS } from "@/constants/theme";
-import * as NavigationBar from "expo-navigation-bar";
 import { SplashScreen, Stack } from "expo-router";
-import { useCallback, useEffect } from "react";
-import { Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { useCallback } from "react";
+
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
@@ -12,20 +13,16 @@ export default function RootLayout() {
     await SplashScreen.hideAsync();
   }, []);
 
-  useEffect(() => {
-    if (Platform.OS === "android") {
-      NavigationBar.setBackgroundColorAsync(COLORS.background);
-      NavigationBar.setButtonStyleAsync("light");
-    }
-  }, []);
-
   return (
     <SafeAreaProvider>
       <SafeAreaView
         style={{ flex: 1, backgroundColor: COLORS.background }}
         onLayout={onLayoutRootView}
       >
-        <Stack screenOptions={{ headerShown: false }} />
+        <StatusBar style="light" />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false }} />
+        </GestureHandlerRootView>
       </SafeAreaView>
     </SafeAreaProvider>
   );

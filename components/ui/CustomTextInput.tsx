@@ -1,4 +1,5 @@
 import { COLORS } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -13,6 +14,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import PulsateButton from "./PulsateButton";
 
 type Props = {
   value: string;
@@ -25,6 +27,7 @@ type Props = {
 };
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
+const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export default function CustomTextInput({
@@ -37,6 +40,7 @@ export default function CustomTextInput({
   maxLength,
 }: Props) {
   const [isFocused, setIsFocused] = useState(false);
+  const [isSecure, setIsSecure] = useState(!!secureTextEntry);
   const isActive = isFocused || (value && value.length > 0);
 
   const labelY = useSharedValue(27);
@@ -57,7 +61,7 @@ export default function CustomTextInput({
 
   const borderStyle = useAnimatedStyle(() => {
     return {
-      borderColor: withTiming(inputColor.value, { duration: 250 }),
+      backgroundColor: withTiming(inputColor.value, { duration: 250 }),
     };
   });
 
@@ -81,18 +85,38 @@ export default function CustomTextInput({
 
   return (
     <View style={[styles.container, style]}>
-      <AnimatedText style={[styles.label, labelStyle]}>{label}</AnimatedText>
-      <AnimatedTextInput
-        value={value}
-        onChangeText={onChangeText}
-        style={[styles.input, borderStyle]}
-        placeholderTextColor={COLORS.gray}
-        secureTextEntry={secureTextEntry}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        keyboardType={keyboardType}
-        maxLength={maxLength}
-      />
+      <View style={styles.inputContainer}>
+        <View style={styles.flex}>
+          <AnimatedText style={[styles.label, labelStyle]}>
+            {label}
+          </AnimatedText>
+          <AnimatedTextInput
+            value={value}
+            onChangeText={onChangeText}
+            style={[styles.input]}
+            placeholderTextColor={COLORS.gray}
+            secureTextEntry={isSecure}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            keyboardType={keyboardType}
+            maxLength={maxLength}
+          />
+        </View>
+
+        {secureTextEntry && (
+          <PulsateButton
+            style={styles.iconContainer}
+            onPress={() => setIsSecure(!isSecure)}
+          >
+            {isSecure ? (
+              <Ionicons name="eye-outline" style={styles.showTextIcon} />
+            ) : (
+              <Ionicons name="eye-off-outline" style={styles.showTextIcon} />
+            )}
+          </PulsateButton>
+        )}
+      </View>
+      <AnimatedView style={[styles.border, borderStyle]} />
     </View>
   );
 }
@@ -103,11 +127,29 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   input: {
-    borderBottomWidth: 1,
     color: COLORS.text,
     maxWidth: 500,
   },
+  inputContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   label: {
     color: COLORS.gray,
+  },
+  border: {
+    height: 1,
+  },
+  iconContainer: {
+    alignSelf: "flex-end",
+  },
+  showTextIcon: {
+    margin: 5,
+    marginBottom: 9,
+    color: COLORS.gray,
+    fontSize: 22,
+  },
+  flex: {
+    flex: 1,
   },
 });

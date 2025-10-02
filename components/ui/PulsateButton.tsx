@@ -1,4 +1,4 @@
-import { Pressable } from "react-native";
+import { Pressable, StyleProp, ViewStyle } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,7 +8,9 @@ import Animated, {
 type Props = {
   children?: React.ReactNode;
   onPress?: () => void;
-  style?: object;
+  scaleOnPress?: number;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -16,12 +18,14 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function PulsateButton({
   children,
   onPress,
+  scaleOnPress = 0.95,
+  disabled = false,
   style = {},
 }: Props) {
   const scale = useSharedValue(1);
 
   const onPressIn = () => {
-    scale.value = 0.95;
+    scale.value = scaleOnPress;
   };
 
   const onPressOut = () => {
@@ -37,6 +41,7 @@ export default function PulsateButton({
   return (
     <AnimatedPressable
       style={[style, animatedStyle]}
+      disabled={disabled}
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}

@@ -1,43 +1,47 @@
-import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Modal, StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { Modal } from "../ui/Modal";
 import PulsateButton from "../ui/PulsateButton";
 
-export default function SelectedImageModal({ visible, onClose, imageUrl }) {
+type Props = {
+  isVisible: boolean;
+  onClose: () => void;
+  imageUrl: string;
+};
+
+export default function SelectedImageModal({
+  isVisible,
+  onClose,
+  imageUrl,
+}: Props) {
   return (
     <Modal
-      visible={visible}
-      onRequestClose={onClose}
-      animationType="slide"
-      transparent={true}
+      isVisible={isVisible}
+      onClose={onClose}
+      backdropOpacity={0.5}
+      style={styles.modal}
+      contentContainerStyle={styles.container}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <PulsateButton onPress={onClose}>
-            <Ionicons name="close" style={styles.closeIcon} />
-          </PulsateButton>
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.image}
-            contentFit="cover"
-            cachePolicy={"memory-disk"}
-            transition={500}
-          />
-        </View>
-      </View>
+      <PulsateButton onPress={onClose}>
+        <Ionicons name="close" style={styles.closeIcon} />
+      </PulsateButton>
+      <Image
+        source={{ uri: imageUrl }}
+        style={styles.image}
+        contentFit="cover"
+        cachePolicy={"memory-disk"}
+        transition={500}
+      />
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: COLORS.modalOverlay,
+  modal: {
+    justifyContent: "center",
   },
   container: {
-    flex: 1,
-    justifyContent: "center",
     padding: 5,
   },
   closeIcon: {

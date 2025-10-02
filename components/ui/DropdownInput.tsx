@@ -1,6 +1,6 @@
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -38,7 +38,11 @@ export default function DropdownInput({
   style,
 }: Props) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [layout, setLayout] = useState(null);
+  const [layout, setLayout] = useState<null | {
+    top: number;
+    left: number;
+    width: number;
+  }>(null);
   const DropdownButton = useRef(null);
 
   const dropdownHeight = useSharedValue(0);
@@ -116,14 +120,16 @@ export default function DropdownInput({
   };
 
   const openDropdown = () => {
-    DropdownButton.current.measureInWindow((px, py, width, height) => {
-      setLayout({
-        top: py + height,
-        left: px,
-        width: width,
-      });
-      setIsDropdownOpen(true);
-    });
+    DropdownButton.current?.measureInWindow(
+      (px: number, py: number, width: number, height: number) => {
+        setLayout({
+          top: py + height,
+          left: px,
+          width: width,
+        });
+        setIsDropdownOpen(true);
+      }
+    );
   };
 
   return (

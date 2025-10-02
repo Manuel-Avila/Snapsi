@@ -41,7 +41,7 @@ export default function Profile() {
         noDataMessage="No posts yet"
       />
       <EditProfileModal
-        visible={isEditModalVisible}
+        isVisible={isEditModalVisible}
         onClose={handleCloseEditModal}
       />
     </View>

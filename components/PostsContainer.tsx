@@ -70,7 +70,7 @@ export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
       )}
 
       <SelectedImageModal
-        visible={!!selectedImage}
+        isVisible={!!selectedImage}
         onClose={handleCloseSelectedImageModal}
         imageUrl={selectedImage}
       />
