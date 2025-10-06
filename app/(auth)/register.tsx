@@ -3,8 +3,9 @@ import DropdownInput from "@/components/ui/DropdownInput";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useState } from "react";
+import { registerSchema } from "@/validators/authValidator";
 import {
   Keyboard,
   StyleSheet,
@@ -12,8 +13,17 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useMutation } from "react-query";
+import { AxiosError } from "axios";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
+import Toast from "react-native-toast-message";
+import { useAuth } from "@/context/AuthContext";
 
-export default function SignUp() {
+export default function Register() {
+  const { register } = useAuth();
+  const { submitForm, isSubmitting, errors } = useFormSubmit();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -22,6 +32,45 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const genderOptions = ["Male", "Female", "Other"];
+
+  const { mutate } = useMutation({
+    mutationFn: register,
+    onSuccess: (data) => {
+      Toast.show({
+        type: "success",
+        text1: "Registration Successful !",
+        text2: "You can now log in with your credentials.",
+      });
+
+      router.push("/(auth)/login");
+    },
+    onError: (error: AxiosError) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred during registration.";
+
+      Toast.show({
+        type: "error",
+        text1: "Registration Error",
+        text2: errorMessage,
+      });
+    },
+  });
+
+  const handleSubmit = async () => {
+    Keyboard.dismiss();
+
+    const formData = {
+      username: username.trim(),
+      email: email.trim(),
+      password: password,
+      confirmPassword: confirmPassword,
+      age: age === "" ? null : Number(age),
+      gender: gender.toLowerCase(),
+    };
+
+    await submitForm(formData, registerSchema, mutate);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -32,11 +81,13 @@ export default function SignUp() {
             label="Username"
             value={username}
             onChangeText={setUsername}
+            error={errors.username}
           />
           <CustomTextInput
             label="Email"
             value={email}
             onChangeText={setEmail}
+            error={errors.email}
           />
           <View style={styles.ageAndGenderContainer}>
             <DropdownInput
@@ -45,6 +96,7 @@ export default function SignUp() {
               onSelect={setGender}
               options={genderOptions}
               style={styles.flex}
+              error={errors.gender}
             />
             <CustomTextInput
               label="Age"
@@ -53,6 +105,7 @@ export default function SignUp() {
               style={styles.flex}
               keyboardType="number-pad"
               maxLength={3}
+              error={errors.age}
             />
           </View>
           <CustomTextInput
@@ -60,15 +113,21 @@ export default function SignUp() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={true}
+            error={errors.password}
           />
           <CustomTextInput
             label="Confirm Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={true}
+            error={errors.confirmPassword}
           />
         </View>
-        <PulsateButton style={styles.button}>
+        <PulsateButton
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          style={styles.button}
+        >
           <Text style={styles.text}>Sign Up</Text>
         </PulsateButton>
         <View style={styles.separatorContainer}>
@@ -76,7 +135,7 @@ export default function SignUp() {
           <Text style={styles.text}>Or</Text>
           <View style={styles.separator} />
         </View>
-        <PulsateButton style={styles.googleButton}>
+        <PulsateButton style={styles.googleButton} disabled={isSubmitting}>
           <Ionicons name="logo-google" style={styles.googleIcon} />
           <Text style={styles.text}>Google</Text>
         </PulsateButton>
@@ -107,10 +166,10 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "80%",
-    gap: 15,
+    gap: 20,
   },
   button: {
-    marginTop: 10,
+    marginTop: 20,
     padding: 12,
     width: "75%",
     maxWidth: 500,

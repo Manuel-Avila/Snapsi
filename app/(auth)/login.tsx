@@ -2,7 +2,7 @@ import CustomTextInput from "@/components/ui/CustomTextInput";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Keyboard,
@@ -12,9 +12,52 @@ import {
   View,
 } from "react-native";
 
+import { useMutation } from "react-query";
+import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
+import { loginSchema } from "@/validators/authValidator";
+import { useAuth } from "@/context/AuthContext";
+
 export default function Login() {
+  const { login } = useAuth();
+  const { submitForm, isSubmitting, errors } = useFormSubmit();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { mutate } = useMutation({
+    mutationFn: login,
+    onSuccess: (data) => {
+      Toast.show({
+        type: "success",
+        text1: "Login Successful !",
+        text2: "Welcome back.",
+      });
+      router.replace("/(tabs)/home");
+    },
+    onError: (error: AxiosError) => {
+      const errorMessage =
+        error.response?.data?.message || "An error occurred during login.";
+
+      Toast.show({
+        type: "error",
+        text1: "Login Error",
+        text2: errorMessage,
+      });
+    },
+  });
+
+  const handleSubmit = async () => {
+    Keyboard.dismiss();
+
+    const formData = {
+      email: email.trim(),
+      password: password,
+    };
+
+    await submitForm(formData, loginSchema, mutate);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -25,15 +68,21 @@ export default function Login() {
             label="Email"
             value={email}
             onChangeText={setEmail}
+            error={errors.email}
           />
           <CustomTextInput
             value={password}
             onChangeText={setPassword}
             label="Password"
             secureTextEntry={true}
+            error={errors.password}
           />
         </View>
-        <PulsateButton style={styles.button}>
+        <PulsateButton
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          style={styles.button}
+        >
           <Text style={styles.text}>Log In</Text>
         </PulsateButton>
         <View style={styles.separatorContainer}>
@@ -41,21 +90,17 @@ export default function Login() {
           <Text style={styles.text}>Or</Text>
           <View style={styles.separator} />
         </View>
-        <PulsateButton style={styles.googleButton}>
+        <PulsateButton disabled={isSubmitting} style={styles.googleButton}>
           <Ionicons name="logo-google" style={styles.googleIcon} />
           <Text style={styles.text}>Google</Text>
         </PulsateButton>
         <Text style={styles.text}>
           Don&apos;t have an account?
-          <Link href="/(auth)/signUp" style={styles.link}>
+          <Link href="/(auth)/register" style={styles.link}>
             {" "}
             Sign Up
           </Link>
         </Text>
-        <Link href="/(tabs)/home" style={styles.link}>
-          {" "}
-          home
-        </Link>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -79,7 +124,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   button: {
-    marginTop: 10,
+    marginTop: 20,
     padding: 12,
     width: "75%",
     maxWidth: 500,

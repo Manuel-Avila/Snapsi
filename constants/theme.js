@@ -8,4 +8,9 @@ export const COLORS = {
   gray: "#9CA3AF",
   text: "#FFFFFF",
   ripple: "rgba(255, 255, 255, 0.1)",
+  error: "#ac5d5dff",
+  toastBackground: "#333",
+  toastBorderColor: "#444",
+  toastSuccessColor: "#2ECC71",
+  toastErrorColor: "#E74C3C",
 };

@@ -20,6 +20,7 @@ type Props = {
   value: string;
   onChangeText: (text: string) => void;
   label: string;
+  error?: string | undefined;
   secureTextEntry?: boolean;
   style?: object;
   keyboardType?: TextInputProps["keyboardType"];
@@ -34,6 +35,7 @@ export default function CustomTextInput({
   value,
   onChangeText,
   label,
+  error,
   secureTextEntry,
   style,
   keyboardType,
@@ -117,6 +119,7 @@ export default function CustomTextInput({
         )}
       </View>
       <AnimatedView style={[styles.border, borderStyle]} />
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 }
@@ -151,5 +154,11 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  errorText: {
+    position: "absolute",
+    fontSize: 12,
+    bottom: -20,
+    color: COLORS.error,
   },
 });

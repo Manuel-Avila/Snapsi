@@ -19,6 +19,7 @@ import Animated, {
 
 type Props = {
   label: string;
+  error?: string | undefined;
   value: string;
   onSelect: (value: string) => void;
   options: string[];
@@ -32,6 +33,7 @@ const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
 
 export default function DropdownInput({
   label,
+  error,
   value,
   onSelect,
   options,
@@ -146,6 +148,7 @@ export default function DropdownInput({
         </View>
         <AnimatedIcon name="chevron-down" style={[styles.icon, iconStyle]} />
       </AnimatedPressable>
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       <Modal visible={isDropdownOpen} transparent animationType="none">
         <Pressable
@@ -249,5 +252,11 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     backgroundColor: COLORS.ripple,
+  },
+  errorText: {
+    position: "absolute",
+    fontSize: 12,
+    bottom: -20,
+    color: COLORS.error,
   },
 });

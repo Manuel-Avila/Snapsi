@@ -3,8 +3,9 @@ import Post from "@/components/Post";
 import StoriesContainer from "@/components/StoriesContainer";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { useQuery } from "react-query";
@@ -39,6 +40,8 @@ const getPosts = async () => {
 };
 
 export default function Home() {
+  const { logout } = useAuth();
+
   const {
     data: posts,
     error,
@@ -46,13 +49,12 @@ export default function Home() {
     isFetching,
     refetch,
   } = useQuery("posts", getPosts, { refetchOnWindowFocus: false });
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Snapsi</Text>
-        <PulsateButton>
+        <PulsateButton onPress={logout}>
           <Ionicons name="log-out-outline" style={styles.logoutIcon} />
         </PulsateButton>
       </View>

@@ -3,12 +3,14 @@ import PostsContainer from "@/components/PostsContainer";
 import ProfileInformation from "@/components/ProfileInformation";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function Profile() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const { logout } = useAuth();
 
   const handleOpenEditModal = () => setIsEditModalVisible(true);
   const handleCloseEditModal = () => setIsEditModalVisible(false);
@@ -26,7 +28,7 @@ export default function Profile() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Username</Text>
-        <PulsateButton>
+        <PulsateButton onPress={logout}>
           <Ionicons name="log-out-outline" style={styles.logoutIcon} />
         </PulsateButton>
       </View>
