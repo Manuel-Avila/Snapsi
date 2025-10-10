@@ -1,7 +1,6 @@
 import CustomTextInput from "@/components/ui/CustomTextInput";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -31,7 +30,7 @@ export default function Login() {
     onSuccess: (data) => {
       Toast.show({
         type: "success",
-        text1: "Login Successful !",
+        text1: "Login Successful!",
         text2: "Welcome back.",
       });
       router.replace("/(tabs)/home");
@@ -90,10 +89,6 @@ export default function Login() {
           <Text style={styles.text}>Or</Text>
           <View style={styles.separator} />
         </View>
-        <PulsateButton disabled={isSubmitting} style={styles.googleButton}>
-          <Ionicons name="logo-google" style={styles.googleIcon} />
-          <Text style={styles.text}>Google</Text>
-        </PulsateButton>
         <Text style={styles.text}>
           Don&apos;t have an account?
           <Link href="/(auth)/register" style={styles.link}>
@@ -145,20 +140,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.text,
     flex: 1,
-  },
-  googleButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-    borderWidth: 1,
-    borderColor: COLORS.text,
-    borderRadius: 15,
-    padding: 12,
-  },
-  googleIcon: {
-    fontSize: 20,
-    color: COLORS.text,
   },
   link: {
     color: COLORS.primary,

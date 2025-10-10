@@ -1,12 +1,15 @@
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { usePost } from "@/hooks/usePost";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -20,19 +23,57 @@ import {
   ScrollView,
   TextInput,
 } from "react-native-gesture-handler";
+import Toast from "react-native-toast-message";
+import { useMutation } from "react-query";
+import { createPostSchema } from "@/validators/postValidator";
 
 const SCALE_ON_PRESS = 0.7;
 
 export default function Create() {
+  const { createPost } = usePost();
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<"front" | "back">("back");
   const [flashMode, setFlashMode] = useState<"off" | "on" | "auto">("off");
   const [takenPhoto, setTakenPhoto] = useState(null);
   const [takingPhoto, setTakingPhoto] = useState(false);
+  const [caption, setCaption] = useState("");
   const [zoom, setZoom] = useState(0);
   const savedZoom = useRef(0);
   const cameraRef = useRef(null);
   const { pickImage } = useImagePicker();
+  const router = useRouter();
+  const { submitForm, isSubmitting } = useFormSubmit();
+
+  const { mutate } = useMutation({
+    mutationFn: createPost,
+    onSuccess: (data) => {
+      Toast.show({
+        type: "success",
+        text1: "Post Created!",
+        text2: `Your post has been successfully created.`,
+      });
+      router.replace("/(tabs)/home");
+      clearFields();
+    },
+    onError: () => {
+      Toast.show({
+        type: "error",
+        text1: "Error creating post",
+        text2: "Please try again later. ",
+      });
+    },
+  });
+
+  const handleShare = () => {
+    Keyboard.dismiss();
+
+    const formData = {
+      imageUri: takenPhoto?.uri,
+      caption: caption.trim(),
+    };
+
+    submitForm(formData, createPostSchema, mutate);
+  };
 
   const changeCameraOrientation = () => {
     setFacing((prev) => (prev === "back" ? "front" : "back"));
@@ -67,6 +108,13 @@ export default function Create() {
     if (result.status === "success") {
       setTakenPhoto({ uri: result.uri });
     }
+  };
+
+  const clearFields = () => {
+    setTakenPhoto(null);
+    setCaption("");
+    setZoom(0);
+    savedZoom.current = 0;
   };
 
   useEffect(() => {
@@ -121,7 +169,7 @@ export default function Create() {
         >
           <GoBackButton />
           <Text style={styles.title}>New Post</Text>
-          <View style={{ margin: 5 }}>
+          <View style={styles.postImageContainer}>
             <Image
               style={styles.postImage}
               source={{ uri: takenPhoto.uri }}
@@ -141,8 +189,14 @@ export default function Create() {
             placeholderTextColor={COLORS.gray}
             maxLength={500}
             multiline
+            value={caption}
+            onChangeText={setCaption}
           />
-          <PulsateButton style={styles.shareButton}>
+          <PulsateButton
+            onPress={handleShare}
+            disabled={isSubmitting}
+            style={styles.shareButton}
+          >
             <Text style={styles.shareButtonText}>Share</Text>
           </PulsateButton>
         </ScrollView>
@@ -238,10 +292,13 @@ const styles = StyleSheet.create({
   },
   title: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 30,
+  },
+  postImageContainer: {
+    margin: 5,
   },
   postImage: {
     width: "100%",

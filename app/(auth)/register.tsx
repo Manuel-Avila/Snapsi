@@ -135,10 +135,7 @@ export default function Register() {
           <Text style={styles.text}>Or</Text>
           <View style={styles.separator} />
         </View>
-        <PulsateButton style={styles.googleButton} disabled={isSubmitting}>
-          <Ionicons name="logo-google" style={styles.googleIcon} />
-          <Text style={styles.text}>Google</Text>
-        </PulsateButton>
+
         <Text style={styles.text}>
           Already have an account?
           <Link href="/(auth)/login" style={styles.link}>
@@ -198,20 +195,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.text,
     flex: 1,
-  },
-  googleButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-    borderWidth: 1,
-    borderColor: COLORS.text,
-    borderRadius: 15,
-    padding: 12,
-  },
-  googleIcon: {
-    fontSize: 20,
-    color: COLORS.text,
   },
   link: {
     color: COLORS.primary,
