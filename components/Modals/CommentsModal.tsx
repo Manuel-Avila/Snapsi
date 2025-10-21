@@ -2,20 +2,91 @@ import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import Comment from "../Comment";
 import { Modal } from "../ui/Modal";
 import PulsateButton from "../ui/PulsateButton";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "react-query";
+import { usePost } from "@/hooks/usePost";
+import Loader from "../Loader";
+import NoItems from "../NoItems";
+import Toast from "react-native-toast-message";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
+import { addCommentSchema } from "@/validators/commentValidator";
+import { PLACEHOLDER_PROFILE_IMAGE } from "@/constants/assets";
+import { UserProfile } from "@/types/IProfile";
 
 type props = {
   isVisible: boolean;
   onClose: () => void;
+  postId: number;
 };
 
-export default function CommentsModal({ isVisible, onClose }: props) {
-  const comments = [1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10];
+export default function CommentsModal({ isVisible, onClose, postId }: props) {
+  const { getComments, addComment } = usePost();
+  const [comment, setComment] = useState("");
+  const { submitForm, isSubmitting } = useFormSubmit();
+  const queryClient = useQueryClient();
 
-  const [newComment, setNewComment] = useState("");
+  const { data: myProfile } = useQuery<UserProfile>(["myProfile"]);
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isFetching,
+  } = useInfiniteQuery(["comments", postId], getComments, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: !!postId && isVisible,
+    refetchOnWindowFocus: false,
+  });
+  const comments = data?.pages.flatMap((page) => page.comments ?? []);
+
+  const { mutate } = useMutation({
+    mutationFn: addComment,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["comments", postId]);
+      queryClient.invalidateQueries("posts");
+      clearFields();
+    },
+    onError: (error) => {
+      Toast.show({
+        type: "error",
+        text1: "Error adding comment",
+        text2: "Failed to add comment. Please try again.",
+      });
+    },
+  });
+
+  const handleAddComment = () => {
+    Keyboard.dismiss();
+
+    const formData = {
+      postId,
+      comment_text: comment.trim(),
+    };
+
+    submitForm(formData, addCommentSchema, mutate);
+  };
+
+  const clearFields = () => {
+    setComment("");
+  };
 
   return (
     <Modal
@@ -30,20 +101,40 @@ export default function CommentsModal({ isVisible, onClose }: props) {
         <Text style={styles.title}>Comments</Text>
       </View>
 
-      <FlatList
-        data={comments}
-        renderItem={({ item }) => <Comment comment={item} />}
-        keyExtractor={(_, i) => i.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.commentsListContainer}
-      />
+      <View style={styles.flex}>
+        {isLoading && <Loader />}
 
+        {!isLoading && comments?.length === 0 && (
+          <NoItems icon="chatbubble-outline" message="No comments yet." />
+        )}
+
+        {!isLoading && comments && comments.length > 0 && (
+          <FlatList
+            data={comments}
+            renderItem={({ item }) => (
+              <Comment comment={item} onClose={onClose} />
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.commentsListContainer}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
+          />
+        )}
+      </View>
       <View style={styles.addCommentContainer}>
         <Image
           style={styles.profileImage}
-          source={{
-            uri: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJQAoQMBIgACEQEDEQH/xAAbAAEBAQEBAQEBAAAAAAAAAAAAAQIFBAMGB//EADcQAAIBAwEFBAYJBQAAAAAAAAABAgMEESEFMUFRYRIiMnFCUmKBkfATFSM0coKhscEUJNHh8f/EABUBAQEAAAAAAAAAAAAAAAAAAAAB/8QAFhEBAQEAAAAAAAAAAAAAAAAAABEB/9oADAMBAAIRAxEAPwD+uAAqAAAAAAAAAAAAAAAAAe4EbAGSsgBmWVkAZBCAfcAAAAAAKBD5XFxTt45qS37lxPnfXatod3DqPwrl1Zw6k5VJuU5OTe9sD3Vtq1JPFGKgub1bPNK7uZPWtP3PB8AB9ld3Ed1eb956aW1K0X9olNfBngAH6C2u6VwsU33vUe//AGffJ+ZUnFpxeGtzR2LC9+nzTq6VVu9pAe1sjHAgAgIwBllyRgMohAB6QAAAAAlSUYQlKe6Kyynh2vPs2qgm+/LD8vnAHKr1pV6sqk97PmAUAAAAAARk4SUovEk8pkZAP0VvWVejGotMrVcmbObsao2qlJ7k1JfPwOlkgjICZAGW9QyNgM+QIAPWAAAAAHL22+9SXRnUObtmHcpT5Nr4gcoAFAAAAQjANkAA9uyH/ctew/4OucrY8c1qkuCjj4/8OqyCMy2Vsy2AMsMyBQZAHvAAAAAD43lH6e2nBLXGY+Z9gB+Y6PgDo7UtHCUq9Nd2XixwZztxcAAgEyAQAQfqeqwtXWmpSTVOO/q+QHQ2bRdK2TktZvtf4PS2P2I2QRsmQzLYBsyyszIBkGc9EAOkAAAAAAABo8prRnKu9mtNztln2OXkdOpUhSj2qk1FdWeKe1LdT7Pfa9bG4Djyi4NxkmmuDMs/QKrbXUd9OfR7z5y2dbS9BrykxRwv0C1eFq3yR2/q624wb85M3m3to6OnT6/Ooo59ts6c2p18wjy4s6kYxpwUYLEVuSPH9Z26n2e/j1uyeinWp1lmlOMveBtmSsy2AbMsNkbwBGzLYbI2BMlJgAdQAAAAAOfebSUMwoYlJb5PgY2peNN0KTx67X7HKA1UnOpLtVJOT5swytkKIzarVY+GrJfmZggG5VqsvFVm/wAzPnxyCMBkKTi8xbT6EIB0bbaLWI19eU1/J0Mp6pprmfnW9T12F26clSqP7NvRv0SDrMw2VvJlgRsjYbM5AuhCZQA7AAAHxvK/9Pbyn6W6K6n2OTtmq3VhTW5LL8wOc228ve9SMZIUCAgAhWZAEZcmQBGw2ZANmXuwVmQOzs+v9NQSlrOGj69T7s5OzanYuVHhNYOpkgEZTLAuvME97AHZAAA4G0Zdq9qdHg7zZ+evvvlb8QHwZCkKIAQAyMGQDI9Ssy2BGTJTLAEYbMgbpS7NWm+Ukd1n5+Hjj5o77ZBGQMAATQAdsjKAMn5++++VvxAAecAFGWQACMgAGeJGABCMADMjIAFj44+aO8+IBBCMAClAA//Z",
-          }}
+          source={
+            myProfile?.profile_picture_url
+              ? { uri: myProfile.profile_picture_url }
+              : PLACEHOLDER_PROFILE_IMAGE
+          }
           contentFit="cover"
           transition={500}
           cachePolicy="memory-disk"
@@ -51,12 +142,14 @@ export default function CommentsModal({ isVisible, onClose }: props) {
         <TextInput
           style={styles.input}
           placeholder="Add a comment"
-          value={newComment}
-          onChangeText={setNewComment}
+          value={comment}
+          onChangeText={setComment}
           placeholderTextColor={COLORS.gray}
         />
         <PulsateButton
-          style={[styles.sendButton, !newComment.trim() && styles.hide]}
+          onPress={handleAddComment}
+          disabled={isSubmitting || !comment.trim()}
+          style={[styles.sendButton, !comment.trim() && styles.hide]}
         >
           <Ionicons style={styles.sendIcon} name="arrow-up-outline" size={20} />
         </PulsateButton>
@@ -74,8 +167,10 @@ const styles = StyleSheet.create({
     padding: 15,
     gap: 10,
     width: "100%",
-    maxHeight: "80%",
+    height: "80%",
     backgroundColor: COLORS.commentsBackground,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   center: {
     alignItems: "center",
@@ -91,9 +186,12 @@ const styles = StyleSheet.create({
     width: 40,
   },
   addCommentContainer: {
+    paddingTop: 10,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
   profileImage: {
     width: 30,
@@ -118,5 +216,8 @@ const styles = StyleSheet.create({
   },
   commentsListContainer: {
     gap: 14,
+  },
+  flex: {
+    flex: 1,
   },
 });

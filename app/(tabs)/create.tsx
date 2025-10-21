@@ -24,7 +24,7 @@ import {
   TextInput,
 } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { createPostSchema } from "@/validators/postValidator";
 
 const SCALE_ON_PRESS = 0.7;
@@ -43,15 +43,13 @@ export default function Create() {
   const { pickImage } = useImagePicker();
   const router = useRouter();
   const { submitForm, isSubmitting } = useFormSubmit();
+  const queryClient = useQueryClient();
 
-  const { mutate } = useMutation({
+  const { mutate, isLoading } = useMutation({
     mutationFn: createPost,
     onSuccess: (data) => {
-      Toast.show({
-        type: "success",
-        text1: "Post Created!",
-        text2: `Your post has been successfully created.`,
-      });
+      queryClient.invalidateQueries("posts");
+      queryClient.invalidateQueries("myProfile");
       router.replace("/(tabs)/home");
       clearFields();
     },
@@ -194,7 +192,7 @@ export default function Create() {
           />
           <PulsateButton
             onPress={handleShare}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoading}
             style={styles.shareButton}
           >
             <Text style={styles.shareButtonText}>Share</Text>

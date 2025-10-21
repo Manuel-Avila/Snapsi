@@ -7,7 +7,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function UserProfile() {
-  const { id } = useLocalSearchParams();
+  const { username } = useLocalSearchParams();
   const router = useRouter();
   const posts = [
     {
@@ -25,7 +25,7 @@ export default function UserProfile() {
         <PulsateButton onPress={() => router.back()}>
           <Ionicons name="arrow-back" style={styles.arrowBackIcon} />
         </PulsateButton>
-        <Text style={styles.title}>Username {id}</Text>
+        <Text style={styles.title}>Username {username}</Text>
       </View>
       <ProfileInformation />
       {followed ? (

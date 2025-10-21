@@ -2,7 +2,6 @@ import CustomTextInput from "@/components/ui/CustomTextInput";
 import DropdownInput from "@/components/ui/DropdownInput";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { registerSchema } from "@/validators/authValidator";
@@ -24,6 +23,7 @@ export default function Register() {
   const { submitForm, isSubmitting, errors } = useFormSubmit();
   const router = useRouter();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -61,6 +61,7 @@ export default function Register() {
     Keyboard.dismiss();
 
     const formData = {
+      name: name.trim(),
       username: username.trim(),
       email: email.trim(),
       password: password,
@@ -77,6 +78,12 @@ export default function Register() {
       <View style={styles.container}>
         <Text style={styles.title}>Sign Up</Text>
         <View style={styles.inputContainer}>
+          <CustomTextInput
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            error={errors.name}
+          />
           <CustomTextInput
             label="Username"
             value={username}

@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   errorText: {
     position: "absolute",
     fontSize: 12,
-    bottom: -20,
+    top: 60,
     color: COLORS.error,
   },
 });

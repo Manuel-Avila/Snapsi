@@ -1,26 +1,64 @@
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
-
 import { useImagePicker } from "@/hooks/useImagePicker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import CustomTextInput from "../ui/CustomTextInput";
 import { Modal } from "../ui/Modal";
 import PulsateButton from "../ui/PulsateButton";
+import { UserProfile } from "@/types/IProfile";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
+import { useMutation, useQueryClient } from "react-query";
+import { useProfile } from "@/hooks/useProfile";
+import { updateProfileSchema } from "@/validators/profileValidator";
+import Toast from "react-native-toast-message";
 
 type Props = {
   isVisible: boolean;
   onClose: () => void;
+  profileData: UserProfile | undefined;
 };
 
-export default function EditProfileModal({ isVisible, onClose }: Props) {
-  const [name, setName] = useState("Cirilais");
-  const [description, setDescription] = useState("");
-  const [imageUri, setImageUri] = useState<string | null>(null);
+export default function EditProfileModal({
+  isVisible,
+  onClose,
+  profileData,
+}: Props) {
+  const { updateProfile } = useProfile();
+  const { submitForm, isSubmitting, errors } = useFormSubmit();
+  const [name, setName] = useState(profileData?.name || "");
+  const [bio, setBio] = useState(profileData?.bio || "");
+  const [imageUri, setImageUri] = useState<string | null>(
+    profileData?.profile_picture_url || null
+  );
   const { pickImage } = useImagePicker();
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading } = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries("myProfile");
+      onClose();
+    },
+    onError: () => {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to update profile. Please try again later.",
+      });
+    },
+  });
 
   const handleSaveChanges = () => {
-    onClose();
+    const image =
+      imageUri !== profileData?.profile_picture_url ? imageUri : undefined;
+    const formData = {
+      imageUri: image,
+      name,
+      bio: bio.trim(),
+    };
+
+    submitForm(formData, updateProfileSchema, mutate);
   };
 
   const handleSelectImage = async () => {
@@ -30,6 +68,14 @@ export default function EditProfileModal({ isVisible, onClose }: Props) {
       setImageUri(result.uri);
     }
   };
+
+  useEffect(() => {
+    if (isVisible) {
+      setName(profileData?.name || "");
+      setBio(profileData?.bio || "");
+      setImageUri(profileData?.profile_picture_url || null);
+    }
+  }, [isVisible, profileData]);
 
   return (
     <Modal
@@ -56,18 +102,26 @@ export default function EditProfileModal({ isVisible, onClose }: Props) {
           transition={500}
         />
       </PulsateButton>
-      <CustomTextInput value={name} onChangeText={setName} label="Username" />
-
       <CustomTextInput
-        value={description}
-        onChangeText={setDescription}
-        label="Description"
+        value={name}
+        onChangeText={setName}
+        label="Name"
+        error={errors.name}
       />
 
-      <PulsateButton style={styles.saveButton}>
-        <Text style={styles.text} onPress={handleSaveChanges}>
-          Save Changes
-        </Text>
+      <CustomTextInput
+        value={bio}
+        onChangeText={setBio}
+        label="Biography"
+        error={errors.bio}
+      />
+
+      <PulsateButton
+        style={styles.saveButton}
+        onPress={handleSaveChanges}
+        disabled={isSubmitting || isLoading}
+      >
+        <Text style={styles.text}>Save Changes</Text>
       </PulsateButton>
     </Modal>
   );
@@ -82,9 +136,9 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.commentsBackground,
     padding: 25,
-    gap: 15,
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 20,
+    gap: 20,
+    borderTopRightRadius: 30,
+    borderTopLeftRadius: 30,
   },
   center: {
     alignItems: "center",

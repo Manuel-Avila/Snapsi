@@ -13,4 +13,7 @@ export const COLORS = {
   toastBorderColor: "#444",
   toastSuccessColor: "#2ECC71",
   toastErrorColor: "#E74C3C",
+  border: "rgba(100, 100, 100, 0.1)",
+  liked: "#E74C3C",
+  bookmarked: "#F1C40F",
 };

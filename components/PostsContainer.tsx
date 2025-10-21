@@ -1,6 +1,5 @@
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
-import { useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -9,8 +8,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import SelectedImageModal from "./Modals/SelectedImageModal";
 import NoItems from "./NoItems";
+import { IPost } from "@/types/IPost";
+import PostModal from "./Modals/PostModal";
+
+type Props = {
+  data: IPost[];
+  refetch: () => void;
+  isFetching: boolean;
+  noDataIcon: string;
+  noDataMessage: string;
+};
 
 const numColumns = 3;
 const imageMargin = 1;
@@ -18,19 +26,13 @@ const imageWidth =
   (Dimensions.get("window").width - imageMargin * (numColumns + 1)) /
   numColumns;
 
-export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const handleCloseSelectedImageModal = () => setSelectedImage(null);
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 2000);
-  };
-
+export default function PostsContainer({
+  data,
+  refetch,
+  isFetching,
+  noDataIcon,
+  noDataMessage,
+}: Props) {
   return (
     <View style={styles.container}>
       {data.length === 0 ? (
@@ -40,14 +42,11 @@ export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
           data={data}
           numColumns={numColumns}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setSelectedImage(item.url)}
-            >
+            <TouchableOpacity activeOpacity={0.8}>
               <Image
                 style={styles.bookmarkImage}
                 source={{
-                  uri: item.url,
+                  uri: item.image_url,
                 }}
                 cachePolicy="memory-disk"
                 transition={500}
@@ -59,8 +58,8 @@ export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
+              refreshing={isFetching}
+              onRefresh={refetch}
               colors={[COLORS.primary]}
               progressBackgroundColor={COLORS.background}
               tintColor={COLORS.primary}
@@ -68,12 +67,7 @@ export default function PostsContainer({ data, noDataIcon, noDataMessage }) {
           }
         />
       )}
-
-      <SelectedImageModal
-        isVisible={!!selectedImage}
-        onClose={handleCloseSelectedImageModal}
-        imageUrl={selectedImage}
-      />
+      <PostModal />
     </View>
   );
 }

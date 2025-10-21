@@ -4,7 +4,15 @@ export const registerSchema = Yup.object().shape({
   username: Yup.string()
     .min(5, "Username must be at least 5 characters long")
     .max(50, "Username must be at most 50 characters long")
+    .matches(
+      /^[a-zA-Z0-9.-]*$/,
+      "Username can only contain letters, numbers, hyphens (-), and periods (.)"
+    )
     .required("Username is required"),
+  name: Yup.string()
+    .min(3, "Name must be at least 3 characters long")
+    .max(255, "Name must be at most 255 characters long")
+    .required("Name is required"),
   email: Yup.string()
     .email("Email is not valid")
     .max(255, "Email must be at most 255 characters long")
@@ -29,6 +37,5 @@ export const loginSchema = Yup.object().shape({
     .email("Email is not valid")
     .max(255, "Email must be at most 255 characters long")
     .required("Email is required"),
-  password: Yup.string()
-  .required("Password is required"),
+  password: Yup.string().required("Password is required"),
 });

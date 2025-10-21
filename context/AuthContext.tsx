@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import api from "@/api/apiClient";
 
 type RegisterData = {
+  name: string;
   username: string;
   password: string;
   email: string;

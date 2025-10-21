@@ -8,41 +8,98 @@ import CommentsModal from "./Modals/CommentsModal";
 import PulsateButton from "./ui/PulsateButton";
 import type { IPost } from "@/types/IPost";
 import formatRelativeTime from "@/utils/formatRelativeTime";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { usePost } from "@/hooks/usePost";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { PLACEHOLDER_PROFILE_IMAGE } from "@/constants/assets";
 
-export default function Post({ post }: { post: IPost }) {
+export default function Post({ post, onActionSuccess }: { post: IPost }) {
   const [showComments, setShowComments] = useState(false);
-  const { likePost } = usePost();
+  const { likePost, unlikePost, bookmarkPost, unbookmarkPost } = usePost();
+  const queryClient = useQueryClient();
 
   const handleOpenComments = () => setShowComments(true);
   const handleCloseComments = () => setShowComments(false);
 
-  const { mutate: handleLikePost } = useMutation({
+  const { mutate: handleLikePost, isLoading: isLiking } = useMutation({
     mutationFn: likePost,
-    onSuccess: async () => {},
-    onError: () => {},
+    onSuccess: () => {
+      queryClient.invalidateQueries("posts");
+    },
+    onError: () => showToastError("liking"),
   });
+
+  const { mutate: handleUnlikePost, isLoading: isUnliking } = useMutation({
+    mutationFn: unlikePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries("posts");
+    },
+    onError: () => showToastError("unliking"),
+  });
+
+  const { mutate: handleBookmarkPost, isLoading: isBookmarking } = useMutation({
+    mutationFn: bookmarkPost,
+    onSuccess: () => {
+      queryClient.invalidateQueries("posts");
+    },
+    onError: () => showToastError("bookmarking"),
+  });
+
+  const { mutate: handleUnbookmarkPost, isLoading: isUnbookmarking } =
+    useMutation({
+      mutationFn: unbookmarkPost,
+      onSuccess: () => {
+        queryClient.invalidateQueries("posts");
+      },
+      onError: () => showToastError("unbookmarking"),
+    });
+
+  const handleToggleAction = (action: string) => {
+    let mutationFn;
+
+    if (action === "like") {
+      mutationFn = post.is_liked ? handleUnlikePost : handleLikePost;
+    } else if (action === "bookmark") {
+      mutationFn = post.is_bookmarked
+        ? handleUnbookmarkPost
+        : handleBookmarkPost;
+    }
+
+    if (mutationFn) {
+      mutationFn(post.id);
+    }
+  };
+
+  const showToastError = (action: string) => {
+    Toast.show({
+      type: "error",
+      text1: `Error ${action} post`,
+      text2: `Failed to ${action} the post. Please try again.`,
+    });
+  };
+
+  const isLikeToggling = isLiking || isUnliking;
+  const isBookmarkToggling = isBookmarking || isUnbookmarking;
 
   return (
     <View style={styles.container}>
       <View style={styles.bar}>
-        <Link href="/user/3" asChild>
+        <Link href={`/user/${post.user.username}`} asChild>
           <PulsateButton style={styles.userContainer}>
             <Image
               style={styles.profileImage}
               source={
-                post.user.profile_image
+                post.user.profile_picture_url
                   ? {
-                      uri: post.user.profile_image,
+                      uri: post.user.profile_picture_url,
                     }
-                  : require("@/assets/images/profile-image-placeholder.webp")
+                  : PLACEHOLDER_PROFILE_IMAGE
               }
               contentFit="cover"
               transition={500}
               cachePolicy="memory-disk"
             />
-            <Text style={styles.username}>{post.user.username}</Text>
+            <Text style={styles.username}>{post.user.name}</Text>
           </PulsateButton>
         </Link>
         <PulsateButton>
@@ -62,37 +119,53 @@ export default function Post({ post }: { post: IPost }) {
 
       <View style={styles.bar}>
         <View style={styles.metricsContainer}>
-          <View style={styles.flexRow}>
-            <PulsateButton>
+          <PulsateButton
+            onPress={() => handleToggleAction("like")}
+            disabled={isLikeToggling}
+            style={styles.flexRow}
+          >
+            {post.is_liked ? (
+              <Ionicons name="heart" size={25} style={styles.liked} />
+            ) : (
               <Ionicons name="heart-outline" size={25} style={styles.white} />
-            </PulsateButton>
+            )}
             {post.like_count > 0 && (
               <Text style={styles.metricText}>{post.like_count}</Text>
             )}
-          </View>
-          <View style={styles.flexRow}>
-            <PulsateButton onPress={handleOpenComments}>
-              <Ionicons
-                name="chatbubble-outline"
-                size={25}
-                style={styles.white}
-              />
-            </PulsateButton>
+          </PulsateButton>
+
+          <PulsateButton onPress={handleOpenComments} style={styles.flexRow}>
+            <Ionicons
+              name="chatbubble-outline"
+              size={25}
+              style={styles.white}
+            />
             {post.comment_count > 0 && (
               <Text style={styles.metricText}>{post.comment_count}</Text>
             )}
-          </View>
+          </PulsateButton>
         </View>
-        <PulsateButton>
-          <Ionicons name="bookmark-outline" size={25} style={styles.white} />
+        <PulsateButton
+          onPress={() => handleToggleAction("bookmark")}
+          disabled={isBookmarkToggling}
+        >
+          {post.is_bookmarked ? (
+            <Ionicons name="bookmark" size={25} style={styles.bookmarked} />
+          ) : (
+            <Ionicons name="bookmark-outline" size={25} style={styles.white} />
+          )}
         </PulsateButton>
       </View>
-      <View style={styles.postMetrics}>
+      <View style={styles.captionContainer}>
         {post.caption && <Text style={styles.white}>{post.caption}</Text>}
         <Text style={styles.time}>{formatRelativeTime(post.created_at)}</Text>
       </View>
 
-      <CommentsModal isVisible={showComments} onClose={handleCloseComments} />
+      <CommentsModal
+        isVisible={showComments}
+        onClose={handleCloseComments}
+        postId={post.id}
+      />
     </View>
   );
 }
@@ -131,7 +204,13 @@ const styles = StyleSheet.create({
   },
   metricText: {
     color: COLORS.text,
-    fontSize: 17,
+    fontSize: 15,
+  },
+  liked: {
+    color: COLORS.liked,
+  },
+  bookmarked: {
+    color: COLORS.bookmarked,
   },
   white: {
     color: COLORS.text,
@@ -144,7 +223,8 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
     fontSize: 12,
   },
-  postMetrics: {
+  captionContainer: {
+    marginTop: -3,
     paddingHorizontal: 15,
     gap: 5,
   },

@@ -9,7 +9,8 @@ export type IPost = {
   is_bookmarked: boolean;
   user: {
     id: number;
+    name: string;
     username: string;
-    profile_image: string;
+    profile_picture_url: string;
   };
 };

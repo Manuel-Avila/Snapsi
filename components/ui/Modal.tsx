@@ -104,6 +104,8 @@ export function Modal({
   };
 
   const panGesture = Gesture.Pan()
+    .activeOffsetY(10)
+    .failOffsetY(-10)
     .onUpdate((event) => {
       const newTranslateY = event.translationY;
       if (newTranslateY > 0) {
@@ -120,6 +122,7 @@ export function Modal({
         });
       }
     })
+    .simultaneousWithExternalGesture()
     .runOnJS(true);
 
   return (
