@@ -28,9 +28,42 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
+  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
+
   const isRefreshing = isFetching && !isLoading && !isFetchingNextPage;
 
-  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
+  const renderContent = () => {
+    if (isLoading) {
+      return <Loader />;
+    }
+
+    return (
+      <FlatList
+        data={posts}
+        renderItem={({ item }) => <Post post={item} queryKey={"posts"} />}
+        keyExtractor={(item) => JSON.stringify(item.id)}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.postsContainer}
+        ListHeaderComponent={<StoriesContainer />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refetch}
+            colors={[COLORS.primary]}
+            progressBackgroundColor={COLORS.background}
+            tintColor={COLORS.primary}
+          />
+        }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -41,34 +74,7 @@ export default function Home() {
         </PulsateButton>
       </View>
 
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <FlatList
-          data={posts}
-          renderItem={({ item }) => <Post post={item} />}
-          keyExtractor={(item) => JSON.stringify(item.id)}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingBottom: 70 }}
-          ListHeaderComponent={<StoriesContainer />}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refetch}
-              colors={[COLORS.primary]}
-              progressBackgroundColor={COLORS.background}
-              tintColor={COLORS.primary}
-            />
-          }
-          onEndReached={() => {
-            if (hasNextPage && !isFetchingNextPage) {
-              fetchNextPage();
-            }
-          }}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
-        />
-      )}
+      <View style={styles.flex}>{renderContent()}</View>
     </View>
   );
 }
@@ -79,6 +85,10 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     gap: 20,
     backgroundColor: COLORS.background,
+  },
+  postsContainer: {
+    gap: 20,
+    paddingBottom: 70,
   },
   header: {
     paddingHorizontal: 15,
@@ -94,5 +104,8 @@ const styles = StyleSheet.create({
   logoutIcon: {
     color: COLORS.text,
     fontSize: 24,
+  },
+  flex: {
+    flex: 1,
   },
 });

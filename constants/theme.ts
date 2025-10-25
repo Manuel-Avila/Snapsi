@@ -16,4 +16,6 @@ export const COLORS = {
   border: "rgba(100, 100, 100, 0.1)",
   liked: "#E74C3C",
   bookmarked: "#F1C40F",
+  commentIcon: "#3498DB",
+  followIcon: "#2ECC71",
 };

@@ -2,47 +2,143 @@ import PostsContainer from "@/components/PostsContainer";
 import ProfileInformation from "@/components/ProfileInformation";
 import PulsateButton from "@/components/ui/PulsateButton";
 import { COLORS } from "@/constants/theme";
+import { StyleSheet, Text, View } from "react-native";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "react-query";
+import type { UserProfile } from "@/types/IUserProfile";
+import { usePost } from "@/hooks/usePost";
+import { IPost } from "@/types/IPost";
+import Loader from "@/components/Loader";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { useUser } from "@/hooks/useUser";
+import Toast from "react-native-toast-message";
+import { useEffect } from "react";
 
-export default function UserProfile() {
+export default function Profile() {
+  const { followUser, unfollowUser, getProfile } = useUser();
   const { username } = useLocalSearchParams();
+  const { getUserPosts } = usePost();
   const router = useRouter();
-  const posts = [
-    {
-      url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJQAoQMBIgACEQEDEQH/xAAbAAEBAQEBAQEBAAAAAAAAAAAAAQIFBAMGB//EADcQAAIBAwEFBAYJBQAAAAAAAAABAgMEESEFMUFRYRIiMnFCUmKBkfATFSM0coKhscEUJNHh8f/EABUBAQEAAAAAAAAAAAAAAAAAAAAB/8QAFhEBAQEAAAAAAAAAAAAAAAAAABEB/9oADAMBAAIRAxEAPwD+uAAqAAAAAAAAAAAAAAAAAe4EbAGSsgBmWVkAZBCAfcAAAAAAKBD5XFxTt45qS37lxPnfXatod3DqPwrl1Zw6k5VJuU5OTe9sD3Vtq1JPFGKgub1bPNK7uZPWtP3PB8AB9ld3Ed1eb956aW1K0X9olNfBngAH6C2u6VwsU33vUe//AGffJ+ZUnFpxeGtzR2LC9+nzTq6VVu9pAe1sjHAgAgIwBllyRgMohAB6QAAAAAlSUYQlKe6Kyynh2vPs2qgm+/LD8vnAHKr1pV6sqk97PmAUAAAAAARk4SUovEk8pkZAP0VvWVejGotMrVcmbObsao2qlJ7k1JfPwOlkgjICZAGW9QyNgM+QIAPWAAAAAHL22+9SXRnUObtmHcpT5Nr4gcoAFAAAAQjANkAA9uyH/ctew/4OucrY8c1qkuCjj4/8OqyCMy2Vsy2AMsMyBQZAHvAAAAAD43lH6e2nBLXGY+Z9gB+Y6PgDo7UtHCUq9Nd2XixwZztxcAAgEyAQAQfqeqwtXWmpSTVOO/q+QHQ2bRdK2TktZvtf4PS2P2I2QRsmQzLYBsyyszIBkGc9EAOkAAAAAAABo8prRnKu9mtNztln2OXkdOpUhSj2qk1FdWeKe1LdT7Pfa9bG4Djyi4NxkmmuDMs/QKrbXUd9OfR7z5y2dbS9BrykxRwv0C1eFq3yR2/q624wb85M3m3to6OnT6/Ooo59ts6c2p18wjy4s6kYxpwUYLEVuSPH9Z26n2e/j1uyeinWp1lmlOMveBtmSsy2AbMsNkbwBGzLYbI2BMlJgAdQAAAAAOfebSUMwoYlJb5PgY2peNN0KTx67X7HKA1UnOpLtVJOT5swytkKIzarVY+GrJfmZggG5VqsvFVm/wAzPnxyCMBkKTi8xbT6EIB0bbaLWI19eU1/J0Mp6pprmfnW9T12F26clSqP7NvRv0SDrMw2VvJlgRsjYbM5AuhCZQA7AAAHxvK/9Pbyn6W6K6n2OTtmq3VhTW5LL8wOc228ve9SMZIUCAgAhWZAEZcmQBGw2ZANmXuwVmQOzs+v9NQSlrOGj69T7s5OzanYuVHhNYOpkgEZTLAuvME97AHZAAA4G0Zdq9qdHg7zZ+evvvlb8QHwZCkKIAQAyMGQDI9Ssy2BGTJTLAEYbMgbpS7NWm+Ukd1n5+Hjj5o77ZBGQMAATQAdsjKAMn5++++VvxAAecAFGWQACMgAGeJGABCMADMjIAFj44+aO8+IBBCMAClAA//Z",
-    },
-    {
-      url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJQAoQMBIgACEQEDEQH/xAAbAAEBAQEBAQEBAAAAAAAAAAAAAQIFBAMGB//EADcQAAIBAwEFBAYJBQAAAAAAAAABAgMEESEFMUFRYRIiMnFCUmKBkfATFSM0coKhscEUJNHh8f/EABUBAQEAAAAAAAAAAAAAAAAAAAAB/8QAFhEBAQEAAAAAAAAAAAAAAAAAABEB/9oADAMBAAIRAxEAPwD+uAAqAAAAAAAAAAAAAAAAAe4EbAGSsgBmWVkAZBCAfcAAAAAAKBD5XFxTt45qS37lxPnfXatod3DqPwrl1Zw6k5VJuU5OTe9sD3Vtq1JPFGKgub1bPNK7uZPWtP3PB8AB9ld3Ed1eb956aW1K0X9olNfBngAH6C2u6VwsU33vUe//AGffJ+ZUnFpxeGtzR2LC9+nzTq6VVu9pAe1sjHAgAgIwBllyRgMohAB6QAAAAAlSUYQlKe6Kyynh2vPs2qgm+/LD8vnAHKr1pV6sqk97PmAUAAAAAARk4SUovEk8pkZAP0VvWVejGotMrVcmbObsao2qlJ7k1JfPwOlkgjICZAGW9QyNgM+QIAPWAAAAAHL22+9SXRnUObtmHcpT5Nr4gcoAFAAAAQjANkAA9uyH/ctew/4OucrY8c1qkuCjj4/8OqyCMy2Vsy2AMsMyBQZAHvAAAAAD43lH6e2nBLXGY+Z9gB+Y6PgDo7UtHCUq9Nd2XixwZztxcAAgEyAQAQfqeqwtXWmpSTVOO/q+QHQ2bRdK2TktZvtf4PS2P2I2QRsmQzLYBsyyszIBkGc9EAOkAAAAAAABo8prRnKu9mtNztln2OXkdOpUhSj2qk1FdWeKe1LdT7Pfa9bG4Djyi4NxkmmuDMs/QKrbXUd9OfR7z5y2dbS9BrykxRwv0C1eFq3yR2/q624wb85M3m3to6OnT6/Ooo59ts6c2p18wjy4s6kYxpwUYLEVuSPH9Z26n2e/j1uyeinWp1lmlOMveBtmSsy2AbMsNkbwBGzLYbI2BMlJgAdQAAAAAOfebSUMwoYlJb5PgY2peNN0KTx67X7HKA1UnOpLtVJOT5swytkKIzarVY+GrJfmZggG5VqsvFVm/wAzPnxyCMBkKTi8xbT6EIB0bbaLWI19eU1/J0Mp6pprmfnW9T12F26clSqP7NvRv0SDrMw2VvJlgRsjYbM5AuhCZQA7AAAHxvK/9Pbyn6W6K6n2OTtmq3VhTW5LL8wOc228ve9SMZIUCAgAhWZAEZcmQBGw2ZANmXuwVmQOzs+v9NQSlrOGj69T7s5OzanYuVHhNYOpkgEZTLAuvME97AHZAAA4G0Zdq9qdHg7zZ+evvvlb8QHwZCkKIAQAyMGQDI9Ssy2BGTJTLAEYbMgbpS7NWm+Ukd1n5+Hjj5o77ZBGQMAATQAdsjKAMn5++++VvxAAecAFGWQACMgAGeJGABCMADMjIAFj44+aO8+IBBCMAClAA//Z",
-    },
-  ];
-  const followed = true;
+  const queryClient = useQueryClient();
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <PulsateButton onPress={() => router.back()}>
-          <Ionicons name="arrow-back" style={styles.arrowBackIcon} />
-        </PulsateButton>
-        <Text style={styles.title}>Username {username}</Text>
-      </View>
-      <ProfileInformation />
-      {followed ? (
-        <PulsateButton style={[styles.button, styles.followingButtonColor]}>
-          <Text style={styles.buttonText}>Following</Text>
-        </PulsateButton>
-      ) : (
-        <PulsateButton style={[styles.button, styles.followButtonColor]}>
-          <Text style={styles.buttonText}>Follow</Text>
-        </PulsateButton>
-      )}
+  useEffect(() => {
+    const currentUser: UserProfile | undefined =
+      queryClient.getQueryData("myProfile");
+    if (username === currentUser?.username) {
+      router.replace("/(tabs)/profile");
+    }
+  }, [username, queryClient]);
 
+  const {
+    data: profileInfo,
+    isLoading: isProfileLoading,
+    refetch: refetchProfile,
+  } = useQuery<UserProfile>(["user", username], getProfile, {
+    enabled: !!username,
+  });
+  const {
+    data: postsData,
+    isLoading: arePostsLoading,
+    hasNextPage: postsHasNextPage,
+    fetchNextPage: fetchPostsNextPage,
+    isFetchingNextPage: arePostsFetchingNextPage,
+    refetch: refetchPosts,
+    isFetching: arePostsFetching,
+  } = useInfiniteQuery(["posts", username], getUserPosts, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: !!username,
+  });
+
+  const posts: IPost[] = postsData?.pages?.flatMap((page) => page.posts) ?? [];
+
+  const { mutate: follow } = useMutation({
+    mutationFn: followUser,
+    onSuccess: refetchProfile,
+    onError: (error) => {
+      Toast.show({
+        type: "error",
+        text1: "Error following user",
+        text2: "Failed to follow the user. Please try again.",
+      });
+    },
+  });
+
+  const { mutate: unfollow } = useMutation({
+    mutationFn: unfollowUser,
+    onSuccess: refetchProfile,
+    onError: (error) => {
+      Toast.show({
+        type: "error",
+        text1: "Error unfollowing user",
+        text2: "Failed to unfollow the user. Please try again.",
+      });
+    },
+  });
+
+  const handleToggleFollow = () => {
+    let mutationFn;
+
+    mutationFn = profileInfo?.is_followed ? unfollow : follow;
+
+    if (mutationFn && profileInfo?.id) {
+      mutationFn(profileInfo?.id);
+    }
+  };
+
+  if (isProfileLoading) {
+    return <Loader />;
+  }
+
+  const renderContent = () => {
+    if (arePostsLoading) {
+      return <Loader />;
+    }
+
+    return (
       <PostsContainer
         data={posts}
+        refetch={refetchPosts}
+        fetchNextPage={fetchPostsNextPage}
+        hasNextPage={postsHasNextPage}
+        isFetchingNextPage={arePostsFetchingNextPage}
+        isFetching={arePostsFetching}
         noDataIcon="camera-outline"
         noDataMessage="No posts yet"
       />
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <PulsateButton
+        onPress={() => router.back()}
+        style={styles.arrowBackContainer}
+        scaleOnPress={0.7}
+      >
+        <Ionicons name="arrow-back-outline" style={styles.icon} />
+      </PulsateButton>
+      <Text style={styles.title}>{profileInfo?.username}</Text>
+      <ProfileInformation profileInfo={profileInfo} />
+      <PulsateButton
+        onPress={handleToggleFollow}
+        style={[
+          styles.button,
+          profileInfo?.is_followed
+            ? styles.unfollowButton
+            : styles.followButton,
+        ]}
+      >
+        <Text style={styles.buttonText}>
+          {profileInfo?.is_followed ? "Unfollow" : "Follow"}
+        </Text>
+      </PulsateButton>
+
+      <View style={styles.flex}>{renderContent()}</View>
     </View>
   );
 }
@@ -50,35 +146,39 @@ export default function UserProfile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 15,
     gap: 20,
     backgroundColor: COLORS.background,
   },
-  header: {
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
+  arrowBackContainer: {
+    position: "absolute",
+    top: 30,
+    left: 20,
+    zIndex: 1,
+  },
+  icon: {
+    color: COLORS.text,
+    fontSize: 30,
   },
   title: {
-    marginLeft: 15,
-    fontSize: 24,
+    color: COLORS.text,
+    fontSize: 22,
     fontWeight: "bold",
-    color: COLORS.text,
+    textAlign: "center",
+    marginTop: 30,
   },
-  arrowBackIcon: {
-    color: COLORS.text,
-    fontSize: 24,
-  },
-  followButtonColor: {
-    backgroundColor: COLORS.primary,
-  },
-  followingButtonColor: {
-    backgroundColor: COLORS.buttonBackground,
+  flex: {
+    flex: 1,
   },
   button: {
     marginHorizontal: 10,
     paddingVertical: 10,
+    borderRadius: 5,
+  },
+  followButton: {
     backgroundColor: COLORS.primary,
+  },
+  unfollowButton: {
+    backgroundColor: COLORS.buttonBackground,
   },
   buttonText: {
     color: COLORS.text,

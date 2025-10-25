@@ -9,4 +9,5 @@ export type UserProfile = {
   gender: string;
   post_count: number;
   profile_picture_url: string | null;
+  is_followed: boolean;
 };

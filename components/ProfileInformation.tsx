@@ -1,7 +1,7 @@
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
-import type { UserProfile } from "@/types/IProfile";
+import type { UserProfile } from "@/types/IUserProfile";
 import PulsateButton from "./ui/PulsateButton";
 import ImageModal from "./Modals/ImageModal";
 import { useState } from "react";

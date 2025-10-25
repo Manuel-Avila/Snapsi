@@ -6,7 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 import CustomTextInput from "../ui/CustomTextInput";
 import { Modal } from "../ui/Modal";
 import PulsateButton from "../ui/PulsateButton";
-import { UserProfile } from "@/types/IProfile";
+import { UserProfile } from "@/types/IUserProfile";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useMutation, useQueryClient } from "react-query";
 import { useProfile } from "@/hooks/useProfile";

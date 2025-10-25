@@ -8,20 +8,25 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useInfiniteQuery, useQuery } from "react-query";
-import type { UserProfile } from "@/types/IProfile";
+import type { UserProfile } from "@/types/IUserProfile";
 import { usePost } from "@/hooks/usePost";
 import { IPost } from "@/types/IPost";
 import Loader from "@/components/Loader";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function Profile() {
+  const { getMyProfile } = useProfile();
   const { logout } = useAuth();
   const { getUserPosts } = usePost();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const { data: myProfile, isLoading: isProfileLoading } =
-    useQuery<UserProfile>(["myProfile"]);
+    useQuery<UserProfile>(["myProfile"], getMyProfile);
   const {
     data: postsData,
     isLoading: arePostsLoading,
+    hasNextPage: postsHasNextPage,
+    fetchNextPage: fetchPostsNextPage,
+    isFetchingNextPage: arePostsFetchingNextPage,
     refetch: refetchPosts,
     isFetching: arePostsFetching,
   } = useInfiniteQuery(["posts", myProfile?.username], getUserPosts, {
@@ -33,11 +38,30 @@ export default function Profile() {
   const handleOpenEditModal = () => setIsEditModalVisible(true);
   const handleCloseEditModal = () => setIsEditModalVisible(false);
 
-  const posts: IPost[] = postsData?.pages.flatMap((page) => page.posts) ?? [];
+  const posts: IPost[] = postsData?.pages?.flatMap((page) => page.posts) ?? [];
 
   if (isProfileLoading) {
     return <Loader />;
   }
+
+  const renderContent = () => {
+    if (arePostsLoading) {
+      return <Loader />;
+    }
+
+    return (
+      <PostsContainer
+        data={posts}
+        refetch={refetchPosts}
+        fetchNextPage={fetchPostsNextPage}
+        hasNextPage={postsHasNextPage}
+        isFetchingNextPage={arePostsFetchingNextPage}
+        isFetching={arePostsFetching}
+        noDataIcon="camera-outline"
+        noDataMessage="No posts yet"
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -52,19 +76,7 @@ export default function Profile() {
         <Text style={styles.editButtonText}>Edit Profile</Text>
       </PulsateButton>
 
-      <View style={styles.flex}>
-        {arePostsLoading ? (
-          <Loader />
-        ) : (
-          <PostsContainer
-            data={posts}
-            refetch={refetchPosts}
-            isFetching={arePostsFetching}
-            noDataIcon="camera-outline"
-            noDataMessage="No posts yet"
-          />
-        )}
-      </View>
+      <View style={styles.flex}>{renderContent()}</View>
 
       <EditProfileModal
         isVisible={isEditModalVisible}
@@ -100,6 +112,7 @@ const styles = StyleSheet.create({
   editButton: {
     marginHorizontal: 10,
     paddingVertical: 10,
+    borderRadius: 5,
     backgroundColor: COLORS.buttonBackground,
   },
   editButtonText: {

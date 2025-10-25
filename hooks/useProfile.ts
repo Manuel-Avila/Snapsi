@@ -1,5 +1,5 @@
 import api from "@/api/apiClient";
-import type { UserProfile } from "@/types/IProfile";
+import type { UserProfile } from "@/types/IUserProfile";
 
 type UpdateProfileData = {
   name: string;

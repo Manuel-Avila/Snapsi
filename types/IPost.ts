@@ -1,6 +1,7 @@
 export type IPost = {
   id: number;
   image_url: string;
+  image_cloudinary_id: string;
   caption: string;
   created_at: string;
   like_count: number;

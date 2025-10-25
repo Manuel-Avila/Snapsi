@@ -2,57 +2,49 @@ import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import CommentsModal from "./Modals/CommentsModal";
 import PulsateButton from "./ui/PulsateButton";
 import type { IPost } from "@/types/IPost";
 import formatRelativeTime from "@/utils/formatRelativeTime";
-import { useMutation, useQueryClient } from "react-query";
-import { usePost } from "@/hooks/usePost";
-import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { PLACEHOLDER_PROFILE_IMAGE } from "@/constants/assets";
+import { usePostMutations } from "@/hooks/usePostMutations";
+import { UserProfile } from "@/types/IUserProfile";
+import { useQueryClient } from "react-query";
+import ConfirmationModal from "./Modals/ConfirmationModal";
 
-export default function Post({ post, onActionSuccess }: { post: IPost }) {
-  const [showComments, setShowComments] = useState(false);
-  const { likePost, unlikePost, bookmarkPost, unbookmarkPost } = usePost();
+type Props = {
+  post: IPost;
+  queryKey: string | (string | number)[];
+  openComments?: boolean;
+};
+
+export default function Post({ post, queryKey, openComments }: Props) {
   const queryClient = useQueryClient();
+  const [showActions, setShowActions] = useState(false);
+  const [showComments, setShowComments] = useState(openComments || false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const {
+    handleLikePost,
+    isLiking,
+    handleUnlikePost,
+    isUnliking,
+    handleBookmarkPost,
+    isBookmarking,
+    handleUnbookmarkPost,
+    isUnbookmarking,
+    handleDeletePost,
+    isDeleting,
+  } = usePostMutations(queryKey);
 
-  const handleOpenComments = () => setShowComments(true);
-  const handleCloseComments = () => setShowComments(false);
-
-  const { mutate: handleLikePost, isLoading: isLiking } = useMutation({
-    mutationFn: likePost,
-    onSuccess: () => {
-      queryClient.invalidateQueries("posts");
-    },
-    onError: () => showToastError("liking"),
-  });
-
-  const { mutate: handleUnlikePost, isLoading: isUnliking } = useMutation({
-    mutationFn: unlikePost,
-    onSuccess: () => {
-      queryClient.invalidateQueries("posts");
-    },
-    onError: () => showToastError("unliking"),
-  });
-
-  const { mutate: handleBookmarkPost, isLoading: isBookmarking } = useMutation({
-    mutationFn: bookmarkPost,
-    onSuccess: () => {
-      queryClient.invalidateQueries("posts");
-    },
-    onError: () => showToastError("bookmarking"),
-  });
-
-  const { mutate: handleUnbookmarkPost, isLoading: isUnbookmarking } =
-    useMutation({
-      mutationFn: unbookmarkPost,
-      onSuccess: () => {
-        queryClient.invalidateQueries("posts");
-      },
-      onError: () => showToastError("unbookmarking"),
-    });
+  useEffect(() => {
+    const currentUser: UserProfile | undefined =
+      queryClient.getQueryData("myProfile");
+    if (post?.user?.username === currentUser?.username) {
+      setShowActions(true);
+    }
+  }, [post, queryClient]);
 
   const handleToggleAction = (action: string) => {
     let mutationFn;
@@ -70,12 +62,9 @@ export default function Post({ post, onActionSuccess }: { post: IPost }) {
     }
   };
 
-  const showToastError = (action: string) => {
-    Toast.show({
-      type: "error",
-      text1: `Error ${action} post`,
-      text2: `Failed to ${action} the post. Please try again.`,
-    });
+  const handleConfirmDeletePost = () => {
+    setShowConfirmationModal(false);
+    handleDeletePost(post.id);
   };
 
   const isLikeToggling = isLiking || isUnliking;
@@ -102,9 +91,14 @@ export default function Post({ post, onActionSuccess }: { post: IPost }) {
             <Text style={styles.username}>{post.user.name}</Text>
           </PulsateButton>
         </Link>
-        <PulsateButton>
-          <Ionicons name="ellipsis-vertical" size={20} style={styles.white} />
-        </PulsateButton>
+        {showActions && (
+          <PulsateButton
+            onPress={() => setShowConfirmationModal(true)}
+            disabled={isDeleting}
+          >
+            <Ionicons name="trash-outline" size={20} style={styles.white} />
+          </PulsateButton>
+        )}
       </View>
 
       <Image
@@ -134,7 +128,10 @@ export default function Post({ post, onActionSuccess }: { post: IPost }) {
             )}
           </PulsateButton>
 
-          <PulsateButton onPress={handleOpenComments} style={styles.flexRow}>
+          <PulsateButton
+            onPress={() => setShowComments(true)}
+            style={styles.flexRow}
+          >
             <Ionicons
               name="chatbubble-outline"
               size={25}
@@ -163,8 +160,15 @@ export default function Post({ post, onActionSuccess }: { post: IPost }) {
 
       <CommentsModal
         isVisible={showComments}
-        onClose={handleCloseComments}
+        onClose={() => setShowComments(false)}
         postId={post.id}
+      />
+      <ConfirmationModal
+        isVisible={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        onConfirm={handleConfirmDeletePost}
+        title="Delete Post"
+        message="Are you sure you want to delete this post?"
       />
     </View>
   );

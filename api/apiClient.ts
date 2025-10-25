@@ -1,14 +1,14 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const apiClient = axios.create({
+const api = axios.create({
   baseURL: "http://192.168.1.3:3000/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-apiClient.interceptors.request.use(
+api.interceptors.request.use(
   async (config) => {
     const token = await SecureStore.getItemAsync("access_token");
     if (token) {
@@ -19,7 +19,7 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-apiClient.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response && error.response.status === 401) {
@@ -30,4 +30,4 @@ apiClient.interceptors.response.use(
   }
 );
 
-export default apiClient;
+export default api;

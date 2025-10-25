@@ -26,7 +26,7 @@ import Toast from "react-native-toast-message";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { addCommentSchema } from "@/validators/commentValidator";
 import { PLACEHOLDER_PROFILE_IMAGE } from "@/constants/assets";
-import { UserProfile } from "@/types/IProfile";
+import { UserProfile } from "@/types/IUserProfile";
 
 type props = {
   isVisible: boolean;
@@ -88,6 +88,33 @@ export default function CommentsModal({ isVisible, onClose, postId }: props) {
     setComment("");
   };
 
+  const renderContent = () => {
+    if (isLoading) {
+      return <Loader />;
+    }
+
+    if (comments?.length === 0) {
+      return <NoItems icon="chatbubble-outline" message="No comments yet." />;
+    }
+
+    return (
+      <FlatList
+        data={comments}
+        renderItem={({ item }) => <Comment comment={item} onClose={onClose} />}
+        keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.commentsListContainer}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
+      />
+    );
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -101,32 +128,7 @@ export default function CommentsModal({ isVisible, onClose, postId }: props) {
         <Text style={styles.title}>Comments</Text>
       </View>
 
-      <View style={styles.flex}>
-        {isLoading && <Loader />}
-
-        {!isLoading && comments?.length === 0 && (
-          <NoItems icon="chatbubble-outline" message="No comments yet." />
-        )}
-
-        {!isLoading && comments && comments.length > 0 && (
-          <FlatList
-            data={comments}
-            renderItem={({ item }) => (
-              <Comment comment={item} onClose={onClose} />
-            )}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.commentsListContainer}
-            onEndReached={() => {
-              if (hasNextPage && !isFetchingNextPage) {
-                fetchNextPage();
-              }
-            }}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
-          />
-        )}
-      </View>
+      <View style={styles.flex}>{renderContent()}</View>
       <View style={styles.addCommentContainer}>
         <Image
           style={styles.profileImage}

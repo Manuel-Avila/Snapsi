@@ -1,5 +1,5 @@
 import api from "@/api/apiClient";
-import { IComment } from "@/types/IComment";
+import type { IComment } from "@/types/IComment";
 import type { IPost } from "@/types/IPost";
 
 type GetPostsResponse = {
@@ -45,6 +45,12 @@ export const usePost = () => {
     return response.data;
   };
 
+  const deletePost = async (postId: number) => {
+    const response = await api.delete(`/posts/${postId}`);
+
+    return response.data;
+  };
+
   const getPosts = async ({
     pageParam,
   }: {
@@ -63,10 +69,7 @@ export const usePost = () => {
   const getUserPosts = async ({
     queryKey,
     pageParam,
-  }: {
-    queryKey: (string | number | undefined)[];
-    pageParam?: string;
-  }) => {
+  }): Promise<GetPostsResponse> => {
     const [_key, username] = queryKey;
     const cursor = pageParam;
     const limit = 10;
@@ -75,6 +78,28 @@ export const usePost = () => {
     });
 
     return response.data;
+  };
+
+  const getBookmarkedPosts = async ({ pageParam }: { pageParam?: string }) => {
+    const limit = 10;
+    const cursor = pageParam;
+
+    const response = await api.get("/posts/bookmarks", {
+      params: { limit, cursor },
+    });
+
+    return response.data;
+  };
+
+  const getPostById = async ({
+    queryKey,
+  }: {
+    queryKey: (string | number | undefined)[];
+  }) => {
+    const [_key, id] = queryKey;
+    const response = await api.get(`/posts/${id}`);
+
+    return response.data?.post;
   };
 
   const getComments = async ({
@@ -124,6 +149,7 @@ export const usePost = () => {
 
   return {
     createPost,
+    deletePost,
     getPosts,
     likePost,
     unlikePost,
@@ -132,5 +158,7 @@ export const usePost = () => {
     getComments,
     addComment,
     getUserPosts,
+    getPostById,
+    getBookmarkedPosts,
   };
 };

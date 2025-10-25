@@ -10,11 +10,15 @@ import {
 } from "react-native";
 import NoItems from "./NoItems";
 import { IPost } from "@/types/IPost";
-import PostModal from "./Modals/PostModal";
+import { Link } from "expo-router";
+import Loader from "./Loader";
 
 type Props = {
   data: IPost[];
   refetch: () => void;
+  hasNextPage: boolean | undefined;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
   isFetching: boolean;
   noDataIcon: string;
   noDataMessage: string;
@@ -29,6 +33,9 @@ const imageWidth =
 export default function PostsContainer({
   data,
   refetch,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
   isFetching,
   noDataIcon,
   noDataMessage,
@@ -42,17 +49,22 @@ export default function PostsContainer({
           data={data}
           numColumns={numColumns}
           renderItem={({ item }) => (
-            <TouchableOpacity activeOpacity={0.8}>
-              <Image
-                style={styles.bookmarkImage}
-                source={{
-                  uri: item.image_url,
-                }}
-                cachePolicy="memory-disk"
-                transition={500}
-                contentFit="cover"
-              />
-            </TouchableOpacity>
+            <Link
+              href={{ pathname: "/post/[id]", params: { id: item.id } }}
+              asChild
+            >
+              <TouchableOpacity activeOpacity={0.8}>
+                <Image
+                  style={styles.bookmarkImage}
+                  source={{
+                    uri: item.image_url,
+                  }}
+                  cachePolicy="memory-disk"
+                  transition={500}
+                  contentFit="cover"
+                />
+              </TouchableOpacity>
+            </Link>
           )}
           keyExtractor={(_, i) => i.toString()}
           showsVerticalScrollIndicator={false}
@@ -65,9 +77,15 @@ export default function PostsContainer({
               tintColor={COLORS.primary}
             />
           }
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
         />
       )}
-      <PostModal />
     </View>
   );
 }
